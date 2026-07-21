@@ -1,0 +1,16 @@
+<div class="section-title" [class.section-title--left]="align() === 'left'">
+  <h2 class="section-title__heading">
+    {{ leading() }}
+    <span [style.color]="highlightColor()">{{ highlight() }}</span>
+    @if (trailing()) {
+      {{ ' ' + trailing() }}
+    }
+  </h2>
+  <div
+    class="section-title__underline"
+    [style.background]="underlineColor()"
+  ></div>
+  @if (subtitle()) {
+    <p class="section-title__subtitle">{{ subtitle() }}</p>
+  }
+</div>

@@ -1,0 +1,15 @@
+<nav class="navbar">
+  <div class="navbar__inner">
+    <a href="#" class="navbar__brand">
+      {{ brand() }}<span class="navbar__brand-dot">.</span>
+    </a>
+    <div class="navbar__actions">
+      <a href="#menu" class="navbar__link">Menú</a>
+      <a href="#locales" class="navbar__link">Locales</a>
+      <a [href]="waLinkMsg()" target="_blank" rel="noopener" class="navbar__cta">
+        <app-brand-icon name="whatsapp" [size]="18" />
+        Pedir por WhatsApp
+      </a>
+    </div>
+  </div>
+</nav>

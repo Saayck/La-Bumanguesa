@@ -1,0 +1,156 @@
+@use '../../../styles/tokens' as *;
+
+.footer {
+  background: $color-bg-alt;
+  border-top: 3px solid $color-pink;
+  padding: 64px $container-pad 32px;
+
+  &__inner {
+    max-width: $container-max;
+    margin: 0 auto;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+
+  &__brand {
+    margin: 0 0 16px;
+    font-family: $font-display;
+    font-weight: 400;
+    font-size: 26px;
+    color: #fff;
+
+    &-dot {
+      color: $color-yellow;
+    }
+  }
+
+  &__about {
+    margin: 0;
+    color: $color-text-muted;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  &__heading {
+    margin: 0 0 16px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+
+    &--yellow { color: $color-yellow; }
+    &--pink { color: $color-pink; }
+    &--green { color: $color-green; }
+  }
+
+  &__phone {
+    background: $color-surface-alt;
+    border: 1px solid $color-border;
+    padding: 16px;
+    border-radius: 14px;
+    display: inline-block;
+
+    &-label {
+      margin: 0 0 6px;
+      font-size: 10px;
+      color: $color-text-muted;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    &-number {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: $color-green;
+      }
+    }
+  }
+
+  &__hours {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: #c9c6c1;
+
+    &-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid $color-border;
+      padding-bottom: 8px;
+      gap: 12px;
+    }
+
+    &-value {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    &-note {
+      color: $color-yellow;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-top: 4px;
+    }
+  }
+
+  &__socials {
+    display: flex;
+    gap: 12px;
+
+    &-hint {
+      margin: 0 0 16px;
+      color: $color-text-muted;
+      font-size: 13px;
+    }
+  }
+
+  &__social {
+    width: 46px;
+    height: 46px;
+    background: #1c1c20;
+    border: 1px solid $color-border-soft;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    transition: background 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+
+    &--facebook:hover {
+      background: $color-facebook;
+      color: #fff;
+    }
+    &--instagram:hover {
+      background: $color-pink;
+      color: #fff;
+    }
+    &--tiktok:hover {
+      background: #000;
+      color: #fff;
+    }
+  }
+
+  &__copyright {
+    border-top: 1px solid $color-border;
+    padding-top: 24px;
+    text-align: center;
+    font-size: 11px;
+    color: $color-text-faint;
+    font-weight: 500;
+  }
+}

@@ -1,0 +1,82 @@
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__grid">
+      <div class="footer__col">
+        <h4 class="footer__brand">
+          {{ brand() }}<span class="footer__brand-dot">.</span>
+        </h4>
+        <p class="footer__about">
+          Restaurante de comida rápida con estilo. Abundancia, sabor y los
+          mejores ingredientes en la ciudad de {{ city() }}.
+        </p>
+      </div>
+
+      <div class="footer__col">
+        <h5 class="footer__heading footer__heading--yellow">¡Pide a casa!</h5>
+        <div class="footer__phone">
+          <p class="footer__phone-label">Central de pedidos WhatsApp</p>
+          <a [href]="waLink()" class="footer__phone-number">
+            📞 {{ waDisplay() }}
+          </a>
+        </div>
+      </div>
+
+      <div class="footer__col">
+        <h5 class="footer__heading footer__heading--pink">Atención</h5>
+        <div class="footer__hours">
+          <div class="footer__hours-row">
+            <span>Lunes a Jueves:</span>
+            <span class="footer__hours-value">{{ hours().weekdays }}</span>
+          </div>
+          <div class="footer__hours-row">
+            <span>Viernes a Domingo:</span>
+            <span class="footer__hours-value">{{ hours().weekend }}</span>
+          </div>
+          <div class="footer__hours-note">
+            Delivery disponible en todo {{ city() }}
+          </div>
+        </div>
+      </div>
+
+      <div class="footer__col">
+        <h5 class="footer__heading footer__heading--green">Nuestras redes</h5>
+        <p class="footer__socials-hint">
+          Etiquétanos en tus historias y gana promos.
+        </p>
+        <div class="footer__socials">
+          <a
+            [href]="facebookUrl()"
+            target="_blank"
+            rel="noopener"
+            title="Facebook"
+            class="footer__social footer__social--facebook"
+          >
+            <app-brand-icon name="facebook" [size]="20" />
+          </a>
+          <a
+            [href]="instagramUrl()"
+            target="_blank"
+            rel="noopener"
+            title="Instagram"
+            class="footer__social footer__social--instagram"
+          >
+            <app-brand-icon name="instagram" [size]="20" />
+          </a>
+          <a
+            [href]="tiktokUrl()"
+            target="_blank"
+            rel="noopener"
+            title="TikTok"
+            class="footer__social footer__social--tiktok"
+          >
+            <app-brand-icon name="tiktok" [size]="20" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__copyright">
+      © {{ year() }} La Bumanguesa. Todos los derechos reservados.
+    </div>
+  </div>
+</footer>

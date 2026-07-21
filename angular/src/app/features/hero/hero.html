@@ -1,0 +1,23 @@
+<header class="hero">
+  <div class="hero__slides">
+    @for (slide of slides(); track slide.imageUrl) {
+      <div
+        class="hero__slide"
+        [style.background-image]="'url(' + slide.imageUrl + ')'"
+        [style.animation-delay.s]="slide.delaySeconds"
+      ></div>
+    }
+    <div class="hero__overlay"></div>
+  </div>
+
+  <div class="hero__content">
+    <div class="hero__tag">Comida rápida con estilo — {{ city() }}, {{ country() }}</div>
+    <h1 class="hero__title">
+      <span class="hero__title-line hero__title-line--yellow">Sabor</span>
+      <span class="hero__title-line hero__title-line--pink">que enciende</span>
+      <span class="hero__title-line hero__title-line--green">tu antojo</span>
+    </h1>
+    <p class="hero__desc">Burgers, salchipapas, alitas y mucho más.</p>
+    <a href="#menu" class="hero__cta">Ver el menú</a>
+  </div>
+</header>

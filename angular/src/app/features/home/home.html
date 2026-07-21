@@ -1,0 +1,26 @@
+@if (status() === 'ready') {
+  <app-promo-bar />
+  <app-navbar />
+  <app-hero />
+  <app-marquee [text]="marqueeText()" [durationSeconds]="marqueeDuration()" />
+  <app-menu-section />
+  <app-videos-section />
+  <app-facebook-cta />
+  <app-locations-section />
+  <app-footer />
+} @else if (status() === 'error') {
+  <div class="splash">
+    <div class="splash__brand">LA BUMANGUESA<span>.</span></div>
+    <p class="splash__error">
+      No pudimos cargar la página. Revisa tu conexión e inténtalo de nuevo.
+    </p>
+    <button type="button" class="splash__retry" (click)="retry()">Reintentar</button>
+  </div>
+} @else {
+  <div class="splash" aria-busy="true" aria-live="polite">
+    <div class="splash__brand splash__brand--pulse">LA BUMANGUESA<span>.</span></div>
+    <output class="splash__dots" aria-label="Cargando">
+      <span></span><span></span><span></span>
+    </output>
+  </div>
+}

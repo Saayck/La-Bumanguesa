@@ -1,0 +1,16 @@
+<section id="locales" class="locations-section">
+  <app-section-title
+    align="left"
+    leading=""
+    highlight="Cae a"
+    trailing="nuestros locales"
+    highlightColor="#FF0066"
+    underlineColor="#FF0066"
+    subtitle="Atención en salón y recojo en tienda."
+  />
+  <div class="locations-section__grid">
+    @for (location of items(); track location.id) {
+      <app-location-card [location]="location" />
+    }
+  </div>
+</section>

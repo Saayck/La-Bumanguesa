@@ -1,0 +1,28 @@
+@keyframes heroFade {
+  0% {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  8% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  41% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

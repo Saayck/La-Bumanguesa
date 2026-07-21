@@ -1,0 +1,62 @@
+@use '../../../styles/tokens' as *;
+
+.facebook-cta {
+  background: $color-yellow;
+  border-top: 5px solid #000;
+  border-bottom: 5px solid #000;
+  padding: 72px 24px;
+  text-align: center;
+  color: #000;
+
+  &__inner {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: $font-display;
+    font-weight: 400;
+    font-size: clamp(32px, 5vw, 52px);
+    text-transform: uppercase;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: clamp(15px, 2vw, 19px);
+    font-weight: 600;
+    opacity: 0.8;
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: $color-facebook;
+    color: #fff;
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    border: 3px solid #000;
+    border-radius: 14px;
+    box-shadow: $shadow-hard-lg;
+    margin-top: 8px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+
+    &:hover {
+      background: $color-facebook-hover;
+      color: #fff;
+    }
+
+    &:active {
+      transform: translate(5px, 5px);
+      box-shadow: 0 0 0 #000;
+    }
+  }
+}

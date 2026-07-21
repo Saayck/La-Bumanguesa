@@ -1,0 +1,33 @@
+@use '../../../../styles/tokens' as *;
+@use '../../../../styles/mixins' as *;
+
+.section-title {
+  text-align: center;
+  margin-bottom: 56px;
+
+  &--left {
+    text-align: left;
+    margin-bottom: 48px;
+
+    .section-title__underline {
+      margin-left: 0;
+    }
+  }
+
+  &__heading {
+    @include section-heading;
+  }
+
+  &__underline {
+    width: 90px;
+    height: 8px;
+    margin: 16px auto 0;
+    border-radius: 99px;
+  }
+
+  &__subtitle {
+    color: $color-text-muted;
+    font-weight: 500;
+    margin: 16px 0 0;
+  }
+}

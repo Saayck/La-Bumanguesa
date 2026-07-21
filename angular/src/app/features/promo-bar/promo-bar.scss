@@ -1,0 +1,20 @@
+@use '../../../styles/tokens' as *;
+
+.promo-bar {
+  background: $color-yellow;
+  color: #000;
+  font-weight: 900;
+  font-size: 12px;
+  text-align: center;
+  padding: 8px 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 50;
+
+  &__link {
+    color: #000;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+}

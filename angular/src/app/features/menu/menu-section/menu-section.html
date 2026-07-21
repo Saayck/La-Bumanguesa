@@ -1,0 +1,13 @@
+<section id="menu" class="menu-section">
+  <app-section-title
+    leading="Lo más"
+    highlight="pedido"
+    highlightColor="#FFD700"
+    underlineColor="#FF0066"
+  />
+  <div class="menu-section__grid">
+    @for (item of items(); track item.id) {
+      <app-menu-card [item]="item" [ctaHref]="waLink()" />
+    }
+  </div>
+</section>

@@ -1,0 +1,40 @@
+@use './styles/tokens' as *;
+@use './styles/animations';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: $color-bg;
+  color: $color-text;
+  font-family: $font-body;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a {
+  color: $color-yellow;
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+::selection {
+  background: $color-pink;
+  color: #fff;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

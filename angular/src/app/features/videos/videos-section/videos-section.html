@@ -1,0 +1,15 @@
+<section id="videos" class="videos-section">
+  <app-section-title
+    leading="Dale"
+    highlight="play"
+    trailing="al antojo"
+    highlightColor="#AEEA00"
+    underlineColor="#FFD700"
+    subtitle="Mira cómo preparamos la magia. Síguenos y etiqueta tus videos."
+  />
+  <div class="videos-section__grid">
+    @for (video of items(); track video.id) {
+      <app-video-card [video]="video" />
+    }
+  </div>
+</section>

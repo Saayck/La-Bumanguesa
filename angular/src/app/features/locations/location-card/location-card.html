@@ -1,0 +1,19 @@
+<article class="location-card">
+  <header class="location-card__header">
+    <h3 class="location-card__title" [style.color]="accentColor()">
+      {{ location().name }}
+    </h3>
+    <p class="location-card__address">📍 {{ location().address }}</p>
+  </header>
+  <div class="location-card__map">
+    <iframe
+      [src]="safeMapUrl()"
+      width="100%"
+      height="100%"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+      [title]="'Mapa ' + location().name"
+    ></iframe>
+  </div>
+</article>

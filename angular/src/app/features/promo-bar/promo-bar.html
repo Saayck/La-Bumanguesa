@@ -1,0 +1,7 @@
+@if (visible()) {
+  <div class="promo-bar">
+    🛵 Delivery en todo {{ city() }}:
+    <a [href]="phoneLink()" class="promo-bar__link">{{ phoneDisplay() }}</a>
+    — ¡Pide ahora!
+  </div>
+}

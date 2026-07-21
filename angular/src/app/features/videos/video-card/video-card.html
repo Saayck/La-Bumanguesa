@@ -1,0 +1,28 @@
+<a
+  [href]="video().url"
+  target="_blank"
+  rel="noopener"
+  class="video-card"
+  [style.border-bottom-color]="video().accentColor"
+  [style.margin-top.px]="video().offsetY"
+>
+  <img
+    [src]="video().thumbnailUrl"
+    [alt]="'Video ' + video().label"
+    loading="lazy"
+    decoding="async"
+    class="video-card__thumb"
+  />
+  <div class="video-card__gradient"></div>
+  <div class="video-card__play">
+    <app-brand-icon name="play" [size]="44" />
+  </div>
+  <span
+    class="video-card__badge"
+    [style.background]="badgeStyle().background"
+    [style.border]="badgeStyle().border"
+  >
+    <app-brand-icon [name]="iconName()" [size]="14" />
+    {{ video().label }}
+  </span>
+</a>

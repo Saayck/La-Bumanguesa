@@ -1,0 +1,28 @@
+@use '../../../styles/tokens' as *;
+
+.marquee {
+  background: $color-pink;
+  border-top: 3px solid #000;
+  border-bottom: 3px solid #000;
+  overflow: hidden;
+  padding: 12px 0;
+  position: relative;
+  z-index: 20;
+
+  &__track {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    animation: marquee linear infinite;
+    width: max-content;
+  }
+
+  &__item {
+    font-family: $font-display;
+    font-size: 20px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-right: 32px;
+  }
+}

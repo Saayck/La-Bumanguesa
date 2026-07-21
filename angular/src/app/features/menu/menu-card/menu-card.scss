@@ -1,0 +1,90 @@
+@use '../../../../styles/tokens' as *;
+
+.menu-card {
+  background: $color-surface;
+  border: 2px solid $color-border;
+  border-bottom-width: 8px;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 0.25s ease;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    transform: translateY(-6px);
+  }
+
+  &__media {
+    height: 240px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-weight: 900;
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 2px solid #000;
+    box-shadow: $shadow-hard-sm;
+  }
+
+  &__body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__title {
+    margin: 0;
+    font-family: $font-display;
+    font-weight: 400;
+    font-size: 24px;
+    color: #fff;
+    text-transform: uppercase;
+  }
+
+  &__desc {
+    margin: 0;
+    color: $color-text-muted;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  &__cta {
+    display: block;
+    text-align: center;
+    font-weight: 900;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 13px;
+    border-radius: 10px;
+    border: 2px solid #000;
+    box-shadow: $shadow-hard-md;
+    margin-top: 8px;
+    transition: all 0.15s ease;
+    text-decoration: none;
+
+    &:hover {
+      background: #fff !important;
+      color: #000 !important;
+    }
+
+    &:active {
+      transform: translate(3px, 3px);
+      box-shadow: 0 0 0 #000;
+    }
+  }
+}

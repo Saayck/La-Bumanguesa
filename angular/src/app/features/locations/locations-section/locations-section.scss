@@ -1,0 +1,13 @@
+@use '../../../../styles/tokens' as *;
+
+.locations-section {
+  max-width: $container-max;
+  margin: 0 auto;
+  padding: 88px $container-pad;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+  }
+}
