@@ -5,6 +5,10 @@
   "outputDirectory": "angular/dist/labumanguesa/browser",
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://la-bumanguesa.onrender.com/api/:path*"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
