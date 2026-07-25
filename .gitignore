@@ -1,0 +1,20 @@
+# Node / Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/.pnpm-store/
+
+# Java / Maven
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs & OS
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# Temp files
+*.log
+commit_msg.txt
+diagrams/temp_*
