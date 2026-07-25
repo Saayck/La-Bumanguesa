@@ -66,14 +66,19 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Database: Microsoft SQL Server + Flyway migrations -->
+		<!-- Database: Microsoft SQL Server & PostgreSQL (Supabase / Render / Neon) -->
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<!-- Spring Boot 4 modularizó la autoconfiguración: sin este starter,
-		     Flyway está en el classpath pero las migraciones nunca se ejecutan -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Flyway Migrations -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway</artifactId>
@@ -81,6 +86,10 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-sqlserver</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
 		<dependency>
