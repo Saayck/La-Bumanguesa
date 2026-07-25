@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm run build",
+  "installCommand": "npx pnpm@latest install",
+  "buildCommand": "npx pnpm@latest run build",
   "outputDirectory": "dist/labumanguesa/browser",
-  "installCommand": "pnpm install",
   "rewrites": [
     {
       "source": "/((?!api/).*)",

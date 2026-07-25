@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd angular && pnpm install && pnpm run build",
+  "installCommand": "cd angular && npx pnpm@latest install",
+  "buildCommand": "cd angular && npx pnpm@latest run build",
   "outputDirectory": "angular/dist/labumanguesa/browser",
-  "installCommand": "cd angular && pnpm install",
   "rewrites": [
     {
       "source": "/((?!api/).*)",
