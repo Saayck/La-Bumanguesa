@@ -1,13 +1,15 @@
 package com.bumanguesa.api.location.dto;
 
 import com.bumanguesa.api.common.domain.BrandAccent;
+import com.bumanguesa.api.common.validation.SafeUrl;
+import com.bumanguesa.api.common.validation.SanitizedText;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/** Create/update payload for a store location. */
+/** Create/update payload for a store location with OWASP validation. */
 public record LocationRequest(
         @NotBlank
         @Size(max = 80)
@@ -15,12 +17,12 @@ public record LocationRequest(
                 message = "debe ser un slug en minúsculas (ej: puente-blanco)")
         String slug,
 
-        @NotBlank @Size(max = 120) String name,
-        @NotBlank @Size(max = 200) String address,
+        @NotBlank @Size(max = 120) @SanitizedText String name,
+        @NotBlank @Size(max = 200) @SanitizedText String address,
 
         @NotNull BrandAccent accent,
 
-        @NotBlank @Size(max = 2000) String mapEmbedUrl,
+        @NotBlank @Size(max = 2000) @SafeUrl String mapEmbedUrl,
 
         @NotNull @Min(0) Integer orderIndex,
         @NotNull Boolean active) {

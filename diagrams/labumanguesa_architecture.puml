@@ -1,0 +1,91 @@
+@startuml
+skinparam backgroundColor #1A1A24
+skinparam handwritten false
+skinparam defaultFontName "Segoe UI", Arial, sans-serif
+skinparam defaultFontSize 13
+skinparam roundCorner 10
+
+skinparam node {
+    BackgroundColor #2A2A38
+    BorderColor #FFB703
+    FontColor #FFFFFF
+}
+skinparam database {
+    BackgroundColor #2A2A38
+    BorderColor #FB8500
+    FontColor #FFFFFF
+}
+skinparam component {
+    BackgroundColor #33334D
+    BorderColor #219EBC
+    FontColor #FFFFFF
+}
+skinparam interface {
+    BackgroundColor #023047
+    BorderColor #8ECAE6
+    FontColor #FFFFFF
+}
+
+title <font color=white><b>Arquitectura de La Bumanguesa (Fullstack System)</b></font>
+
+package "Cliente / Navegador" {
+    [Angular v22 SPA\n(Standalone + Signals)] as angular
+    [Admin Panel\n(/admin)] as admin
+}
+
+package "Nginx Proxy / Gateway" {
+    [Nginx Reverse Proxy\n(Puerto 4200 -> /api)] as nginx
+}
+
+package "Backend - Spring Boot 4.1 (Java 21)" {
+    [Security & JwtAuthenticationFilter] as security
+    
+    package "REST Controllers" {
+        [AuthController\n(/api/auth)] as auth_ctrl
+        [MenuItemController\n(/api/menu-items)] as menu_ctrl
+        [SiteSettingController\n(/api/site-config)] as config_ctrl
+        [Video / Location / Hero\nControllers] as other_ctrl
+    }
+
+    package "Services (Business Logic)" {
+        [AdminUserService] as auth_svc
+        [MenuItemService] as menu_svc
+        [SiteSettingService] as config_svc
+    }
+
+    package "Persistence (Spring Data JPA)" {
+        [Repositories & Hibernate ORM] as jpa
+    }
+}
+
+database "Microsoft SQL Server 2022" {
+    folder "Flyway Migrations (V1, V2, V3)" {
+        [site_setting] as tbl_setting
+        [menu_item] as tbl_menu
+        [video & location & hero_slide] as tbl_content
+        [admin_user] as tbl_admin
+    }
+}
+
+angular --> nginx : Peticiones HTTP / GET Públicas
+admin --> security : Peticiones HTTP + Bearer Token JWT
+nginx --> security : Forward /api
+security --> auth_ctrl
+security --> menu_ctrl
+security --> config_ctrl
+security --> other_ctrl
+
+auth_ctrl --> auth_svc
+menu_ctrl --> menu_svc
+config_ctrl --> config_svc
+
+auth_svc --> jpa
+menu_svc --> jpa
+config_svc --> jpa
+
+jpa --> tbl_setting
+jpa --> tbl_menu
+jpa --> tbl_content
+jpa --> tbl_admin
+
+@enduml

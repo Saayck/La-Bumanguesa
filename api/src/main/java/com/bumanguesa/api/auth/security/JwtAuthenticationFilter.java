@@ -18,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Reads the {@code Authorization: Bearer <token>} header, validates the JWT and,
- * if valid, populates the Spring Security context for the request.
+ * if valid and active, populates the Spring Security context for the request.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -52,12 +52,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (userDetails.isEnabled() && userDetails.isAccountNonLocked()) {
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             } catch (Exception ignored) {
-                // Token references an unknown/disabled user — proceed unauthenticated.
+                // Token references an unknown or disabled user — proceed unauthenticated.
             }
         }
 
