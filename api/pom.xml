@@ -66,12 +66,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Database: Microsoft SQL Server & PostgreSQL (Supabase / Render / Neon) -->
-		<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+		<!-- Database: PostgreSQL (Supabase / Render / Neon) -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -85,10 +80,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-sqlserver</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
@@ -98,7 +89,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Test: in-memory H2 so the Spring context loads without a real SQL Server -->
+		<!-- Test: in-memory H2 so the Spring context loads -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
