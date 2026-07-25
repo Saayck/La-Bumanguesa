@@ -258,6 +258,37 @@ cd api
 ./mvnw clean package       # genera el .jar
 ```
 
+### 🐳 Docker (stack completo)
+
+En la raíz del repo hay un `docker-compose.yml` que levanta **todo**:
+
+| Servicio  | Imagen / build                       | Puerto | Rol |
+|-----------|--------------------------------------|--------|-----|
+| `db`      | `mcr.microsoft.com/mssql/server:2022`| 1433   | SQL Server (volumen persistente `mssql-data`) |
+| `db-init` | (sqlcmd, one-shot)                   | —      | Crea la BD `labumanguesa` si no existe |
+| `api`     | `api/Dockerfile` (Maven → JRE 21)    | 8081→8080 | Spring Boot; Flyway migra y siembra al arrancar |
+| `web`     | `angular/Dockerfile` (pnpm → nginx)  | 4200→80 | Angular por nginx + **proxy `/api` → api** (mismo origen, sin CORS) |
+
+```bash
+docker compose up -d --build   # primera vez: descarga imágenes y compila
+docker compose logs -f api     # ver logs de la API
+docker compose down            # detener (los datos persisten en el volumen)
+docker compose down -v         # detener y BORRAR los datos
+```
+
+- Web: `http://localhost:4200` (panel en `/admin`, credenciales seed `admin` / `Bumanguesa2026!`).
+- API: la web la consume vía proxy en `http://localhost:4200/api`; acceso directo
+  para debug en `http://localhost:8081/api` (8080 del host queda libre para otros proyectos).
+- Variables sobreescribibles al levantar: `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`.
+- El orden de arranque está garantizado: `db` (healthcheck con sqlcmd) → `db-init`
+  (crea la BD) → `api` (Flyway ejecuta V1–V3 + seeds) → `web`.
+- En desarrollo (`pnpm start`), el dev-server usa `proxy.conf.json` para redirigir
+  `/api` → `http://localhost:8080` (la API corriendo local con `./mvnw spring-boot:run`).
+
+> ⚠️ Nota Spring Boot 4: Flyway requiere el starter `spring-boot-starter-flyway`
+> (la autoconfiguración se modularizó); con solo `flyway-core` en el classpath
+> las migraciones no se ejecutan.
+
 Prueba rápida:
 ```bash
 # Login (obtiene el token)

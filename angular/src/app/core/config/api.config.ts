@@ -1,5 +1,7 @@
 /**
- * Base URL of the backend REST API.
- * Override at build time via a proxy or by editing this constant per environment.
+ * Base URL of the backend REST API (relative).
+ * - En Docker/producción: nginx hace proxy de `/api` al contenedor de la API.
+ * - En desarrollo (`pnpm start`): el dev-server usa `proxy.conf.json` para
+ *   redirigir `/api` a http://localhost:8080.
  */
-export const API_BASE = 'http://localhost:8080/api';
+export const API_BASE = '/api';

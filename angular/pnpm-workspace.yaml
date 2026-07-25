@@ -1,0 +1,10 @@
+packages:
+  - '.'
+
+# Dependencias cuyos scripts de build están aprobados (pnpm >= 10 los bloquea
+# por defecto). Necesario para que `pnpm install` funcione en CI/Docker.
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
