@@ -1,0 +1,25 @@
+<div class="video-modal-overlay" (click)="closeModal()">
+  <div class="video-modal-card" (click)="$event.stopPropagation()">
+    <button type="button" class="video-modal-close" (click)="closeModal()" aria-label="Cerrar video">×</button>
+    
+    <header class="video-modal-header">
+      <span class="video-modal-badge" [style.background]="video.accentColor">
+        {{ video.platform | uppercase }}
+      </span>
+      <h3 class="video-modal-title">Preparación de La Bumanguesa</h3>
+    </header>
+
+    <div class="video-container">
+      <video
+        [src]="videoSourceUrl()"
+        controls
+        autoplay
+        loop
+        playsinline
+        class="video-player"
+      >
+        Tu navegador no soporta la reproducción de video HTML5.
+      </video>
+    </div>
+  </div>
+</div>

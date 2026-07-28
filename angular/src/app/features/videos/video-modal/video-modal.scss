@@ -1,0 +1,96 @@
+@use '../../../../styles/tokens' as *;
+
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(10px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.video-modal-card {
+  background: #111116;
+  border: 2px solid $color-border;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+  padding: 24px;
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.video-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #22222a;
+  border: 1px solid $color-border-soft;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  z-index: 10;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: $color-pink;
+    border-color: $color-pink;
+  }
+}
+
+.video-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.video-modal-badge {
+  color: #000;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.video-modal-title {
+  font-family: $font-display;
+  font-size: 22px;
+  color: #fff;
+  margin: 0;
+}
+
+.video-container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid $color-border-soft;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}

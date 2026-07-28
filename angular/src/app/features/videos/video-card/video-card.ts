@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, input } from '@angular/core';
 import type { VideoCard as VideoCardModel } from '../../../core/models/video.model';
 import { BrandIcon, type BrandIconName } from '../../../shared/components/brand-icon/brand-icon';
 
@@ -10,6 +10,7 @@ const PLATFORM_ICON: Record<VideoCardModel['platform'], BrandIconName> = {
 
 @Component({
   selector: 'app-video-card',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BrandIcon],
   templateUrl: './video-card.html',
@@ -17,6 +18,7 @@ const PLATFORM_ICON: Record<VideoCardModel['platform'], BrandIconName> = {
 })
 export class VideoCard {
   readonly video = input.required<VideoCardModel>();
+  @Output() playClick = new EventEmitter<VideoCardModel>();
 
   protected readonly iconName = computed<BrandIconName>(
     () => PLATFORM_ICON[this.video().platform],
@@ -35,4 +37,9 @@ export class VideoCard {
       border: v.platform === 'youtube' ? '1px solid #7a0000' : '1px solid #3a3a40',
     };
   });
+
+  protected onPlay(event: Event): void {
+    event.preventDefault();
+    this.playClick.emit(this.video());
+  }
 }

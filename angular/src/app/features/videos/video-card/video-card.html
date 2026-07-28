@@ -1,10 +1,8 @@
-<a
-  [href]="video().url"
-  target="_blank"
-  rel="noopener"
+<article
   class="video-card"
   [style.border-bottom-color]="video().accentColor"
   [style.margin-top.px]="video().offsetY"
+  (click)="onPlay($event)"
 >
   <img
     [src]="video().thumbnailUrl"
@@ -25,4 +23,4 @@
     <app-brand-icon [name]="iconName()" [size]="14" />
     {{ video().label }}
   </span>
-</a>
+</article>

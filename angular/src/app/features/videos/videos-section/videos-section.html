@@ -5,11 +5,15 @@
     trailing="al antojo"
     highlightColor="#AEEA00"
     underlineColor="#FFD700"
-    subtitle="Mira cómo preparamos la magia. Síguenos y etiqueta tus videos."
+    subtitle="Mira cómo preparamos la magia. Haz clic en cualquier video para reproducirlo aquí mismo."
   />
   <div class="videos-section__grid">
     @for (video of items(); track video.id) {
-      <app-video-card [video]="video" />
+      <app-video-card [video]="video" (playClick)="playVideo($event)" />
     }
   </div>
+
+  @if (selectedVideo(); as video) {
+    <app-video-modal [video]="video" (close)="closeVideo()" />
+  }
 </section>
