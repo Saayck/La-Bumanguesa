@@ -110,15 +110,15 @@ VALUES
 INSERT INTO video
     (slug, platform, label, thumbnail_url, accent_color, offset_y, url, order_index, active, created_at, updated_at)
 VALUES
-    ('tiktok-burger', 'TIKTOK', 'TikTok',
+    ('tiktok-burger', 'TIKTOK', 'TikTok Shorts',
      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=600&q=80',
-     '#fff', 0, 'https://www.tiktok.com/@Bumanguesafoodtruck', 0, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('reels-salchipapa', 'INSTAGRAM', 'Reels',
+     '#fff', 0, 'https://www.youtube.com/shorts/5qap5aO4i9A', 0, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('reels-salchipapa', 'INSTAGRAM', 'Reels Prep',
      'https://images.unsplash.com/photo-1606755962773-d324e0a13086?auto=format&fit=crop&w=600&q=80',
-     '#FF0066', 32, 'https://www.instagram.com/Bumanguesafoodtruck', 1, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-    ('shorts-prep', 'YOUTUBE', 'Shorts',
+     '#FF0066', 32, 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', 1, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('shorts-prep', 'YOUTUBE', 'Shorts Gourmet',
      'https://images.unsplash.com/photo-1512152272829-e3139592d56f?auto=format&fit=crop&w=600&q=80',
-     '#FF0000', 64, 'https://www.facebook.com/La-Bumanguesa-Ica', 2, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+     '#FF0000', 64, 'https://www.youtube.com/shorts/5qap5aO4i9A', 2, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO location
     (slug, name, address, accent, map_embed_url, order_index, active, created_at, updated_at)

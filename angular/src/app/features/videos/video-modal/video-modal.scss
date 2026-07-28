@@ -18,10 +18,10 @@
   border: 2px solid $color-border;
   border-radius: 24px;
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
   position: relative;
   padding: 24px;
-  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 32px 64px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -81,11 +81,13 @@
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid $color-border-soft;
+  position: relative;
 }
 
-.video-player {
+.video-player, .video-player-iframe {
   width: 100%;
   height: 100%;
+  border: none;
   object-fit: cover;
   display: block;
 }
