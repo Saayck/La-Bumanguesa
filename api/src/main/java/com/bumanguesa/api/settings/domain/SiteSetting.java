@@ -13,7 +13,7 @@ import lombok.Setter;
 
 /**
  * Global, single-row site configuration (brand, contact, social links, hours,
- * promo bar and marquee). Mirrors {@code SITE_CONFIG} in the Angular app.
+ * promo bar, marquee and Yape/Plin payment details).
  */
 @Entity
 @Table(name = "site_setting")
@@ -70,4 +70,13 @@ public class SiteSetting extends Auditable {
 
     @Column(name = "marquee_duration_seconds", nullable = false)
     private int marqueeDurationSeconds;
+
+    @Column(name = "yape_qr_url", length = 500)
+    private String yapeQrUrl;
+
+    @Column(name = "yape_number", length = 40)
+    private String yapeNumber;
+
+    @Column(name = "yape_holder", length = 120)
+    private String yapeHolder;
 }

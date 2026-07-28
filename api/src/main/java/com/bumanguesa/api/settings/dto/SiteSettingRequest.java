@@ -36,5 +36,9 @@ public record SiteSettingRequest(
         @NotNull @Min(2000) @Max(2100) Integer copyrightYear,
 
         @NotBlank @Size(max = 500) @SanitizedText String marqueeText,
-        @NotNull @Min(5) @Max(120) Integer marqueeDurationSeconds) {
+        @NotNull @Min(5) @Max(120) Integer marqueeDurationSeconds,
+
+        @Size(max = 500) @SafeUrl String yapeQrUrl,
+        @Size(max = 40) @SanitizedText String yapeNumber,
+        @Size(max = 120) @SanitizedText String yapeHolder) {
 }

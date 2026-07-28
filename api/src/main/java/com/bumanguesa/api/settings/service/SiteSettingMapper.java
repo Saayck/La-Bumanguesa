@@ -1,7 +1,6 @@
 package com.bumanguesa.api.settings.service;
 
 import com.bumanguesa.api.settings.domain.SiteSetting;
-
 import com.bumanguesa.api.settings.dto.SiteSettingRequest;
 import com.bumanguesa.api.settings.dto.SiteSettingResponse;
 
@@ -25,7 +24,12 @@ final class SiteSettingMapper {
                 e.getTiktokUrl(),
                 new SiteSettingResponse.Hours(e.getHoursWeekdays(), e.getHoursWeekend()),
                 e.getCopyrightYear(),
-                new SiteSettingResponse.Marquee(e.getMarqueeText(), e.getMarqueeDurationSeconds()));
+                new SiteSettingResponse.Marquee(e.getMarqueeText(), e.getMarqueeDurationSeconds()),
+                new SiteSettingResponse.Payment(
+                        e.getYapeQrUrl() != null ? e.getYapeQrUrl() : "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE-LA-BUMANGUESA-989451473",
+                        e.getYapeNumber() != null ? e.getYapeNumber() : "989 451 473",
+                        e.getYapeHolder() != null ? e.getYapeHolder() : "La Bumanguesa Ica"
+                ));
     }
 
     /** Copies all editable fields from the request onto the entity. */
@@ -45,5 +49,9 @@ final class SiteSettingMapper {
         e.setCopyrightYear(r.copyrightYear());
         e.setMarqueeText(r.marqueeText());
         e.setMarqueeDurationSeconds(r.marqueeDurationSeconds());
+
+        if (r.yapeQrUrl() != null) e.setYapeQrUrl(r.yapeQrUrl());
+        if (r.yapeNumber() != null) e.setYapeNumber(r.yapeNumber());
+        if (r.yapeHolder() != null) e.setYapeHolder(r.yapeHolder());
     }
 }

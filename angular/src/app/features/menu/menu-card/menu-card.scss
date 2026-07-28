@@ -4,20 +4,27 @@
   background: $color-surface;
   border: 2px solid $color-border;
   border-bottom-width: 8px;
-  border-radius: 20px;
+  border-radius: 22px;
   overflow: hidden;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
   display: flex;
   flex-direction: column;
+  height: 100%;
 
   &:hover {
-    transform: translateY(-6px);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+
+    .menu-card__image {
+      transform: scale(1.07);
+    }
   }
 
   &__media {
-    height: 240px;
+    height: 220px;
     overflow: hidden;
     position: relative;
+    background: #111115;
   }
 
   &__image {
@@ -25,24 +32,30 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.4s ease;
   }
 
   &__badge {
     position: absolute;
     top: 14px;
     right: 14px;
+    font-family: $font-body;
     font-weight: 900;
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
-    padding: 5px 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
     border: 2px solid #000;
-    box-shadow: $shadow-hard-sm;
+    box-shadow: 3px 3px 0px #000;
+    letter-spacing: 0.04em;
+    z-index: 2;
   }
 
   &__body {
     padding: 24px;
     display: flex;
     flex-direction: column;
+    flex: 1;
     gap: 12px;
   }
 
@@ -53,33 +66,42 @@
     font-size: 24px;
     color: #fff;
     text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
   }
 
   &__desc {
     margin: 0;
     color: $color-text-muted;
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.6;
+    flex: 1;
   }
 
   &__cta {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     text-align: center;
     font-weight: 900;
     font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 13px;
-    border-radius: 10px;
+    letter-spacing: 0.06em;
+    padding: 14px;
+    border-radius: 12px;
     border: 2px solid #000;
-    box-shadow: $shadow-hard-md;
-    margin-top: 8px;
-    transition: all 0.15s ease;
+    box-shadow: 4px 4px 0px #000;
+    margin-top: auto;
+    transition: all 0.2s ease;
     text-decoration: none;
+    cursor: pointer;
 
     &:hover {
       background: #fff !important;
       color: #000 !important;
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px #000;
     }
 
     &:active {

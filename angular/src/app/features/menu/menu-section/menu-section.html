@@ -1,13 +1,76 @@
 <section id="menu" class="menu-section">
   <app-section-title
-    leading="Lo más"
-    highlight="pedido"
+    leading="Nuestra"
+    highlight="Carta"
     highlightColor="#FFD700"
     underlineColor="#FF0066"
   />
-  <div class="menu-section__grid">
-    @for (item of items(); track item.id) {
-      <app-menu-card [item]="item" [ctaHref]="waLink()" />
-    }
+
+  <!-- TABS DE CATEGORÍAS ESTILIZADAS -->
+  <div class="menu-section__tabs" role="tablist">
+    <button
+      type="button"
+      class="menu-section__tab"
+      [class.menu-section__tab--active]="activeTab() === 'popular'"
+      (click)="selectTab('popular')"
+    >
+      ⭐ Populares (IA Rank)
+    </button>
+    <button
+      type="button"
+      class="menu-section__tab"
+      [class.menu-section__tab--active]="activeTab() === 'clasicas'"
+      (click)="selectTab('clasicas')"
+    >
+      🍔 Hamburguesas
+    </button>
+    <button
+      type="button"
+      class="menu-section__tab"
+      [class.menu-section__tab--active]="activeTab() === 'americanas'"
+      (click)="selectTab('americanas')"
+    >
+      🇺🇸 Burgers Americanas
+    </button>
+    <button
+      type="button"
+      class="menu-section__tab"
+      [class.menu-section__tab--active]="activeTab() === 'extras'"
+      (click)="selectTab('extras')"
+    >
+      🔥 Arma tu Burger (Adicionales)
+    </button>
   </div>
+
+  <!-- GRILLA DE PRODUCTOS -->
+  @if (activeTab() !== 'extras') {
+    <div class="menu-section__grid">
+      @for (item of filteredItems(); track item.id) {
+        <app-menu-card [item]="item" [ctaHref]="waLink()" (orderClick)="openOrderModal($event)" />
+      }
+    </div>
+  }
+
+  <!-- SECCIÓN ARMA TUS BURGERS / ADICIONALES -->
+  @if (activeTab() === 'extras' || activeTab() === 'popular') {
+    <div class="menu-section__extras" [class.menu-section__extras--standalone]="activeTab() === 'extras'">
+      <div class="menu-section__extras-header">
+        <h3 class="menu-section__extras-title">🔥 ARMA TUS BURGERS / ADICIONALES</h3>
+        <p class="menu-section__extras-subtitle">Personaliza tu hamburguesa con tus toppings e ingredientes preferidos</p>
+      </div>
+      <div class="menu-section__extras-grid">
+        @for (extra of extras; track extra.name) {
+          <div class="menu-section__extra-card">
+            <span class="menu-section__extra-name">{{ extra.name }}</span>
+            <span class="menu-section__extra-price">{{ extra.price }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- MODAL INTERACTIVO DE PEDIDO, PAGO YAPE/PLIN Y CALIFICACIÓN DE IA -->
+  @if (selectedOrder(); as selectedItem) {
+    <app-order-modal [item]="selectedItem" (close)="closeOrderModal()" />
+  }
 </section>

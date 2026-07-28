@@ -11,6 +11,19 @@ export type BrandIconName =
 @Component({
   selector: 'app-brand-icon',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [
+    `
+      :host {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+      }
+      svg {
+        display: block;
+      }
+    `,
+  ],
   template: `
     <svg
       [attr.width]="size()"

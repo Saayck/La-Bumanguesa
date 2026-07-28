@@ -2,7 +2,7 @@ package com.bumanguesa.api.settings.dto;
 
 /**
  * Public site configuration. Shape matches the Angular {@code SiteConfig}
- * interface (nested {@code hours}) plus the marquee content.
+ * interface plus marquee and Yape/Plin payment details.
  */
 public record SiteSettingResponse(
         String brand,
@@ -17,9 +17,12 @@ public record SiteSettingResponse(
         String tiktokUrl,
         Hours hours,
         int copyrightYear,
-        Marquee marquee) {
+        Marquee marquee,
+        Payment payment) {
 
     public record Hours(String weekdays, String weekend) {}
 
     public record Marquee(String text, int durationSeconds) {}
+
+    public record Payment(String yapeQrUrl, String yapeNumber, String yapeHolder) {}
 }

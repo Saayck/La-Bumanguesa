@@ -1,0 +1,142 @@
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close" (click)="closeModal()" aria-label="Cerrar">×</button>
+
+    @if (step() === 'order') {
+      <div class="order-step">
+        <header class="modal-header">
+          <span class="modal-badge">🍔 Haz tu Pedido</span>
+          <h2 class="modal-title">{{ item.title }}</h2>
+          <p class="modal-desc">{{ item.description }}</p>
+        </header>
+
+        <!-- SELECCIÓN DE CANTIDAD Y OPCIÓN LLEVAR -->
+        <div class="modal-options">
+          <div class="option-row">
+            <span class="option-label">Cantidad:</span>
+            <div class="qty-controls">
+              <button type="button" (click)="quantity.set(quantity() > 1 ? quantity() - 1 : 1)">-</button>
+              <span>{{ quantity() }}</span>
+              <button type="button" (click)="quantity.set(quantity() + 1)">+</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <span class="option-label">Modalidad:</span>
+            <label class="toggle-takeaway">
+              <input type="checkbox" [checked]="isTakeaway()" (change)="isTakeaway.set(!isTakeaway())" />
+              <span>🛍️ Para llevar (+S/ 1.00)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- ADICIONALES -->
+        <div class="modal-section">
+          <h3 class="section-title">➕ Adicionales (Opcional):</h3>
+          <div class="extras-grid">
+            @for (extra of availableExtras; track extra.name) {
+              <button
+                type="button"
+                class="extra-chip"
+                [class.extra-chip--active]="selectedExtras().includes(extra.name)"
+                (click)="toggleExtra(extra.name)"
+              >
+                {{ extra.name }} (+S/ {{ extra.price }})
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- MÉTODO DE PAGO -->
+        <div class="modal-section">
+          <h3 class="section-title">💳 Método de Pago:</h3>
+          <div class="payment-tabs">
+            <button
+              type="button"
+              class="payment-tab"
+              [class.payment-tab--active]="paymentMethod() === 'yape'"
+              (click)="paymentMethod.set('yape')"
+            >
+              📱 Yape / Plin
+            </button>
+            <button
+              type="button"
+              class="payment-tab"
+              [class.payment-tab--active]="paymentMethod() === 'cash'"
+              (click)="paymentMethod.set('cash')"
+            >
+              💵 Contra Entrega
+            </button>
+          </div>
+
+          @if (paymentMethod() === 'yape') {
+            <div class="yape-box">
+              <img [src]="yapeQrUrl" alt="QR Yape / Plin" class="yape-qr" />
+              <div class="yape-info">
+                <span class="yape-number">Yape / Plin: <strong>{{ yapeNumber }}</strong></span>
+                <span class="yape-holder">Titular: <strong>{{ yapeHolder }}</strong></span>
+                <p class="yape-note">Realiza tu pago o escanea el QR y envía la captura por WhatsApp.</p>
+              </div>
+            </div>
+          } @else {
+            <div class="cash-box">
+              <p>Pagas al momento de recibir tu pedido (Efectivo o Tarjeta POS).</p>
+            </div>
+          }
+        </div>
+
+        <!-- FOOTER Y BOTÓN CONFIRMAR -->
+        <footer class="modal-footer">
+          <div class="total-bar">
+            <span>Total:</span>
+            <span class="total-amount">S/ {{ calculateTotal().toFixed(2) }}</span>
+          </div>
+          <button type="button" class="btn-confirm" (click)="confirmOrder()">
+            Enviar Pedido a WhatsApp 🚀
+          </button>
+        </footer>
+      </div>
+    } @else if (step() === 'rating') {
+      <div class="rating-step">
+        <div class="rating-icon">⭐</div>
+        <h2 class="rating-title">¡Gracias por tu pedido!</h2>
+        <p class="rating-desc">¿Cómo calificarías tu experiencia con <strong>{{ item.title }}</strong>?</p>
+        <p class="rating-hint">Tus estrellas alimentan nuestra IA Local para el ranking de populares.</p>
+
+        <div class="stars-picker">
+          @for (star of [1, 2, 3, 4, 5]; track star) {
+            <button
+              type="button"
+              class="star-btn"
+              [class.star-btn--active]="star <= selectedRating()"
+              (click)="selectedRating.set(star)"
+            >
+              ★
+            </button>
+          }
+        </div>
+
+        <textarea
+          class="rating-textarea"
+          rows="2"
+          placeholder="Escribe un comentario breve sobre el sabor o servicio (Opcional)"
+          [value]="userComment()"
+          (input)="userComment.set($any($event.target).value)"
+        ></textarea>
+
+        <button type="button" class="btn-confirm" (click)="submitRating()">
+          Enviar Calificación ⭐
+        </button>
+      </div>
+    } @else {
+      <div class="thankyou-step">
+        <div class="rating-icon">🎉</div>
+        <h2 class="rating-title">¡Calificación Registrada!</h2>
+        <p class="rating-desc">Gracias por ayudarnos a ser las mejores hamburguesas de Ica. ¡Disfruta tu pedido!</p>
+        <button type="button" class="btn-confirm" (click)="closeModal()">
+          Cerrar
+        </button>
+      </div>
+    }
+  </div>
+</div>

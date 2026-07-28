@@ -19,15 +19,14 @@
   <div class="menu-card__body">
     <h3 class="menu-card__title">{{ item().title }}</h3>
     <p class="menu-card__desc">{{ item().description }}</p>
-    <a
-      [href]="ctaHref()"
-      target="_blank"
-      rel="noopener"
+    <button
+      type="button"
       class="menu-card__cta"
       [style.background]="accentBg()"
       [style.color]="accentText()"
+      (click)="onOrder($event)"
     >
       {{ item().ctaLabel }}
-    </a>
+    </button>
   </div>
 </article>

@@ -1,7 +1,6 @@
 # =====================================================================
 # La Bumanguesa — stack completo
-#   db      → Microsoft SQL Server 2022
-#   db-init → crea la base `labumanguesa` (una sola vez, idempotente)
+#   db      → PostgreSQL 16
 #   api     → Spring Boot (Flyway crea el esquema + datos al arrancar)
 #   web     → Angular servido por nginx
 #
@@ -9,72 +8,51 @@
 #   Web:   http://localhost:4200        (panel: /admin; la web llama a la API
 #          vía proxy nginx en /api — mismo origen, sin CORS)
 #   API:   http://localhost:8081/api    (acceso directo para debug)
-#   Admin: admin / Bumanguesa2026!  (cámbialo vía variables de entorno)
 # =====================================================================
 
 name: labumanguesa
 
 services:
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:16-alpine
     container_name: labumanguesa-db
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-Bumanguesa2026!}
-      MSSQL_PID: Express
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - mssql-data:/var/opt/mssql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' -b || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' -b",
-        ]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
       timeout: 5s
-      retries: 12
-      start_period: 30s
-
-  db-init:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: labumanguesa-db-init
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      MSSQL_SA_PASSWORD: ${DB_PASSWORD:-Bumanguesa2026!}
-    entrypoint:
-      [
-        "/bin/bash",
-        "-c",
-        "/opt/mssql-tools18/bin/sqlcmd -S db -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"IF DB_ID('labumanguesa') IS NULL CREATE DATABASE labumanguesa;\" -b || /opt/mssql-tools/bin/sqlcmd -S db -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"IF DB_ID('labumanguesa') IS NULL CREATE DATABASE labumanguesa;\" -b",
-      ]
-    restart: "no"
+      retries: 10
+      start_period: 10s
 
   api:
     build: ./api
     container_name: labumanguesa-api
-    # La web accede a la API vía el proxy de nginx (mismo origen, sin CORS).
-    # Se expone en 8081 solo para acceso directo/debug desde el host.
     ports:
       - "8081:8080"
     environment:
-      DB_HOST: db
-      DB_PORT: "1433"
-      DB_NAME: labumanguesa
-      DB_USER: sa
-      DB_PASSWORD: ${DB_PASSWORD:-Bumanguesa2026!}
-      CORS_ORIGINS: http://localhost:4200
-      JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-super-secreta-de-al-menos-32-bytes-en-produccion}
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Bumanguesa2026!}
+      SERVER_PORT: ${SERVER_PORT}
+      DB_DRIVER: ${DB_DRIVER}
+      DB_URL: ${DB_URL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
-      db-init:
-        condition: service_completed_successfully
 
   web:
     build: ./angular
@@ -85,4 +63,4 @@ services:
       - api
 
 volumes:
-  mssql-data:
+  postgres-data:

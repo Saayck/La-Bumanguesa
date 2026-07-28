@@ -124,12 +124,19 @@
     background: #1c1c20;
     border: 1px solid $color-border-soft;
     border-radius: 999px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     transition: background 0.2s ease, color 0.2s ease;
     text-decoration: none;
+    line-height: 0;
+
+    app-brand-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     &--facebook:hover {
       background: $color-facebook;

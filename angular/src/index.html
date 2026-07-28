@@ -2,10 +2,20 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>La Bumanguesa — Sabor que enciende tu antojo</title>
+    <title>La Bumanguesa — Hamburguesas Reales y Comida Rápida en Ica</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="La Bumanguesa Ica — Burgers, salchipapas, alitas y combos. Delivery en toda la ciudad." />
+    <meta
+      name="description"
+      content="La Bumanguesa Ica — Las mejores hamburguesas artesanales, salchipapas y adicionales. Delivery a todo Ica. Pedidos al 989 451 473."
+    />
+    <meta property="og:title" content="La Bumanguesa — Hamburguesas Reales en Ica" />
+    <meta
+      property="og:description"
+      content="Carne jugosa, pan brioche artesanal, full queso y papas incluidas en todas nuestras burgers."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_PE" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,6 +23,40 @@
       href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Schema.org JSON-LD (SEO Restaurante de Comida Rápida) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FastFoodRestaurant",
+        "name": "La Bumanguesa",
+        "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80",
+        "telephone": "+51989451473",
+        "priceRange": "S/ 16 - S/ 32",
+        "servesCuisine": ["Fast Food", "Burgers", "Peruvian Fast Food"],
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Urb. Puente Blanco B 11",
+          "addressLocality": "Ica",
+          "addressCountry": "PE"
+        },
+        "url": "http://localhost:4200",
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+            "opens": "17:00",
+            "closes": "00:00"
+          },
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Friday", "Saturday", "Sunday"],
+            "opens": "17:00",
+            "closes": "01:00"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <app-root></app-root>
