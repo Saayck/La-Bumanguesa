@@ -16,6 +16,13 @@ RUN mvn -q -ntp package -DskipTests
 # ---- Etapa 2: runtime liviano con JRE 21 ----
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+RUN adduser --system --group appuser && \
+    chown -R appuser:appuser /app
+
+COPY --from=build --chown=appuser:appuser /app/target/*.jar app.jar
+
+USER appuser
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

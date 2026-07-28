@@ -17,6 +17,15 @@ RUN pnpm build
 
 # ---- Etapa 2: servir estáticos con nginx ----
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/labumanguesa/browser /usr/share/nginx/html
-EXPOSE 80
+
+RUN adduser -D -H -s /sbin/nologin appuser && \
+    touch /var/run/nginx.pid && \
+    chown -R appuser:appuser /var/run/nginx.pid /var/cache/nginx /var/log/nginx /usr/share/nginx/html
+
+COPY --chown=appuser:appuser nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build --chown=appuser:appuser /app/dist/labumanguesa/browser /usr/share/nginx/html
+
+USER appuser
+
+EXPOSE 8080
+
