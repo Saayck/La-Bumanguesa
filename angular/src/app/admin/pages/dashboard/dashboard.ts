@@ -7,6 +7,7 @@ import { API_BASE } from '../../../core/config/api.config';
 
 interface ResourceStat {
   label: string;
+  icon: string;
   link: string;
   total: number;
   active: number;
@@ -35,51 +36,102 @@ interface AiRankingResponse {
   imports: [RouterLink],
   styleUrl: '../../admin.scss',
   template: `
-    <h1 class="admin-title">Dashboard</h1>
-    <p class="admin-subtitle">Estado general y métricas de Inteligencia Artificial Local de La Bumanguesa</p>
+    <h1 class="admin-title">Dashboard General</h1>
+    <p class="admin-subtitle">Métricas del sistema, gestión de contenidos e Inteligencia Artificial Local de La Bumanguesa</p>
 
     @if (loading()) {
-      <div class="empty">Cargando métricas…</div>
+      <div class="empty">Cargando dashboard y métricas…</div>
     } @else if (error()) {
       <div class="alert alert-error">{{ error() }}</div>
     } @else {
+      <!-- MÉTRICAS CLAVE / KPI CARDS -->
       <div class="stat-grid">
         @for (s of stats(); track s.label) {
           <a class="stat-card" [routerLink]="s.link" style="text-decoration:none; color:inherit">
-            <div class="stat-card__label">{{ s.label }}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span class="stat-card__label">{{ s.label }}</span>
+              <span style="font-size: 1.4rem">{{ s.icon }}</span>
+            </div>
             <div class="stat-card__value">{{ s.total }}</div>
-            <div class="stat-card__meta">{{ s.active }} activos · {{ s.total - s.active }} ocultos</div>
+            <div class="stat-card__meta">
+              <strong style="color: var(--admin-green)">{{ s.active }} activos</strong> · {{ s.total - s.active }} ocultos
+            </div>
           </a>
         }
       </div>
 
-      <!-- SECCIÓN IA RANKING & METRICAS DE CALIFICACIÓN -->
-      <div class="stat-card" style="margin-top: 1.5rem">
-        <div class="stat-card__label" style="color: #FFD700">🤖 Ranking de Popularidad por IA Local (Bayesiano)</div>
-        <div class="stat-card__meta" style="margin-top: 0.5rem">
-          Total de calificaciones: <strong>{{ totalRatings() }}</strong> · Promedio global:
-          <strong>{{ globalAvg() }} ⭐</strong>
+      <!-- PANEL IA LOCAL: RANKING DE POPULARIDAD BAYESIANO -->
+      <div class="dashboard-section">
+        <div class="dashboard-section__header">
+          <div>
+            <h2 class="dashboard-section__title">
+              <span>🤖</span> Ranking de Popularidad por IA Local (Algoritmo Bayesiano)
+            </h2>
+            <p class="dashboard-section__desc">
+              Clasificación ponderada según valoraciones del cliente de 1 a 5 estrellas y suavizado estadístico.
+            </p>
+          </div>
+          <div style="text-align: right">
+            <div style="font-size: 1.3rem; font-weight: 900; color: var(--admin-yellow)">
+              {{ globalAvg() }} ⭐
+            </div>
+            <div style="font-size: 0.8rem; color: var(--admin-muted)">
+              {{ totalRatings() }} valoraciones recibidas
+            </div>
+          </div>
         </div>
 
-        <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem">
-          @for (item of topAiRankings(); track item.itemId) {
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #1a1a20; padding: 10px 14px; border-radius: 8px; border: 1px solid #333">
-              <span><strong>{{ item.title }}</strong></span>
-              <span>{{ item.aiBadge }} ({{ item.averageStars }} ⭐ · {{ item.voteCount }} votos)</span>
+        <div class="ranking-list">
+          @for (item of topAiRankings(); track item.itemId; let idx = $index) {
+            <div class="ranking-item">
+              <div class="ranking-item__left">
+                <div class="ranking-item__pos">#{{ idx + 1 }}</div>
+                <div class="ranking-item__name">{{ item.title }}</div>
+              </div>
+
+              <div class="ranking-item__right">
+                <span class="ranking-item__badge">{{ item.aiBadge }}</span>
+                <span class="ranking-item__stars">{{ item.averageStars }} ⭐ ({{ item.voteCount }} votos)</span>
+              </div>
             </div>
           }
         </div>
       </div>
 
-      <div class="stat-card" style="margin-top: 1.5rem">
-        <div class="stat-card__label">Configuración del sitio y Yape/Plin</div>
-        <div class="stat-card__meta" style="margin-top:0.5rem">
-          Marca: <strong>{{ brand() }}</strong> · Barra promo:
-          <strong>{{ promoBar() ? 'visible' : 'oculta' }}</strong>
+      <!-- PANEL DE CONFIGURACIÓN RÁPIDA DE SITIO & YAPE/PLIN -->
+      <div class="dashboard-section">
+        <div class="dashboard-section__header">
+          <div>
+            <h2 class="dashboard-section__title" style="color: #fff">
+              <span>⚙️</span> Configuración de Marca y Yape / Plin
+            </h2>
+            <p class="dashboard-section__desc">
+              Personalización de la marca <strong>{{ brand() }}</strong>, teléfono WhatsApp y código QR de Yape/Plin.
+            </p>
+          </div>
+          <a class="btn btn-primary" routerLink="/admin/site">
+            <span>✏️ Editar Configuración</span>
+          </a>
         </div>
-        <a class="btn btn-ghost btn-sm" routerLink="/admin/site" style="margin-top:0.9rem; display:inline-block">
-          Editar configuración y Yape/Plin QR
-        </a>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; background: var(--admin-panel-2); padding: 1.25rem; border-radius: 14px; border: 1px solid var(--admin-border-soft)">
+          <div>
+            <div style="font-size: 0.8rem; color: var(--admin-muted); text-transform: uppercase">Marca / Ciudad</div>
+            <div style="font-weight: 700; color: #fff; margin-top: 4px">{{ brand() }}</div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: var(--admin-muted); text-transform: uppercase">Barra de Anuncios</div>
+            <div style="font-weight: 700; color: #fff; margin-top: 4px">
+              <span class="badge-pill" [class.badge-on]="promoBar()" [class.badge-off]="!promoBar()">
+                {{ promoBar() ? 'ACTIVA' : 'DESACTIVADA' }}
+              </span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.8rem; color: var(--admin-muted); text-transform: uppercase">Pagos Digitales</div>
+            <div style="font-weight: 700; color: var(--admin-green); margin-top: 4px">📱 YAPE / PLIN QR Activo</div>
+          </div>
+        </div>
       </div>
     }
   `,
@@ -109,10 +161,10 @@ export class Dashboard {
     }).subscribe({
       next: ({ menu, videos, locations, hero, config, aiRank }) => {
         this.stats.set([
-          { label: 'Menú', link: '/admin/menu', total: menu.length, active: menu.filter((x) => x.active).length },
-          { label: 'Videos', link: '/admin/videos', total: videos.length, active: videos.filter((x) => x.active).length },
-          { label: 'Sedes', link: '/admin/locations', total: locations.length, active: locations.filter((x) => x.active).length },
-          { label: 'Hero', link: '/admin/hero', total: hero.length, active: hero.filter((x) => x.active).length },
+          { label: 'Hamburguesas & Menú', icon: '🍔', link: '/admin/menu', total: menu.length, active: menu.filter((x) => x.active).length },
+          { label: 'Videos Sociales', icon: '🎬', link: '/admin/videos', total: videos.length, active: videos.filter((x) => x.active).length },
+          { label: 'Sedes & Mapas', icon: '📍', link: '/admin/locations', total: locations.length, active: locations.filter((x) => x.active).length },
+          { label: 'Diapositivas Hero', icon: '🖼️', link: '/admin/hero', total: hero.length, active: hero.filter((x) => x.active).length },
         ]);
         this.brand.set(config.brand);
         this.promoBar.set(config.showPromoBar);
@@ -120,7 +172,7 @@ export class Dashboard {
         if (aiRank) {
           this.totalRatings.set(aiRank.totalRatings);
           this.globalAvg.set(aiRank.globalAverageStars);
-          this.topAiRankings.set(aiRank.rankings.slice(0, 5));
+          this.topAiRankings.set(aiRank.rankings.slice(0, 6));
         }
 
         this.loading.set(false);
