@@ -1,0 +1,64 @@
+@if (available()) {
+  <section class="ai-rec" aria-label="Recomendador inteligente">
+    <header class="ai-rec__header">
+      <h3 class="ai-rec__title"><span aria-hidden="true">🤖</span> ¿No sabes qué pedir?</h3>
+      <p class="ai-rec__subtitle">
+        Cuéntanos qué se te antoja y nuestra IA elige de la carta por ti.
+      </p>
+    </header>
+
+    <form class="ai-rec__form" (ngSubmit)="ask()">
+      <input
+        name="craving"
+        class="ai-rec__input"
+        [ngModel]="craving()"
+        (ngModelChange)="craving.set($event)"
+        placeholder="Ej: algo con harto queso y que no pase de S/ 25"
+        maxlength="300"
+        autocomplete="off"
+        aria-label="Describe tu antojo"
+      />
+      <button type="submit" class="ai-rec__submit" [disabled]="loading() || !craving().trim()">
+        {{ loading() ? 'Pensando…' : 'Recomiéndame' }}
+      </button>
+    </form>
+
+    @if (!intro() && !loading() && !error()) {
+      <div class="ai-rec__examples">
+        @for (example of examples; track example) {
+          <button type="button" class="ai-rec__chip" (click)="useExample(example)">
+            {{ example }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (error()) {
+      <p class="ai-rec__error">{{ error() }}</p>
+    }
+
+    @if (intro(); as introText) {
+      <p class="ai-rec__intro">{{ introText }}</p>
+    }
+
+    @if (suggestions().length > 0) {
+      <ul class="ai-rec__list">
+        @for (suggestion of suggestions(); track suggestion.itemId; let i = $index) {
+          <li class="ai-rec__item">
+            <img class="ai-rec__thumb" [src]="suggestion.imageUrl" [alt]="suggestion.title" />
+            <div class="ai-rec__info">
+              <p class="ai-rec__item-title">
+                <span class="ai-rec__rank">#{{ i + 1 }}</span> {{ suggestion.title }}
+                <span class="ai-rec__price">{{ suggestion.badge }}</span>
+              </p>
+              <p class="ai-rec__reason">{{ suggestion.reason }}</p>
+            </div>
+            <button type="button" class="ai-rec__pick" (click)="choose(suggestion.itemId)">
+              Pedir
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '../../admin-api.service';
+import { AiAdminService } from '../../ai-admin.service';
 import { SiteConfigService } from '../../../core/services/site-config.service';
 import type { SiteConfigPayload } from '../../models';
 
@@ -21,6 +22,9 @@ function emptyForm(): SiteConfigPayload {
     copyrightYear: new Date().getFullYear(),
     marqueeText: '',
     marqueeDurationSeconds: 22,
+    yapeQrUrl: '',
+    yapeNumber: '',
+    yapeHolder: '',
   };
 }
 
@@ -81,7 +85,18 @@ function emptyForm(): SiteConfigPayload {
 
         <h3>Marquesina (texto animado)</h3>
         <div class="field">
-          <label>Texto</label>
+          <label>
+            Texto
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              style="margin-left:.5rem"
+              [disabled]="generating()"
+              (click)="generateMarquee()"
+            >
+              {{ generating() ? '✨ Redactando…' : '✨ Generar con IA' }}
+            </button>
+          </label>
           <textarea name="marqueeText" [(ngModel)]="form.marqueeText" required maxlength="500"></textarea>
         </div>
         <div class="form-grid" style="margin-top:1rem">
@@ -90,6 +105,34 @@ function emptyForm(): SiteConfigPayload {
             <input name="marqueeDurationSeconds" type="number" min="5" max="120" [(ngModel)]="form.marqueeDurationSeconds" required />
           </div>
         </div>
+
+        <h3>Pagos digitales (Yape / Plin)</h3>
+        <p class="hint" style="margin:-0.5rem 0 1rem">
+          Estos datos son los que ve el cliente en el modal de pedido al elegir “Yape / Plin”.
+        </p>
+        <div class="form-grid">
+          <div class="field">
+            <label>Número Yape/Plin</label>
+            <input name="yapeNumber" [(ngModel)]="form.yapeNumber" maxlength="40" />
+            <span class="hint">tal como se muestra, ej: 989 451 473</span>
+          </div>
+          <div class="field">
+            <label>Titular de la cuenta</label>
+            <input name="yapeHolder" [(ngModel)]="form.yapeHolder" maxlength="120" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:1rem">
+          <label>URL del código QR</label>
+          <input name="yapeQrUrl" [(ngModel)]="form.yapeQrUrl" maxlength="500" />
+          <span class="hint">imagen pública del QR (http/https)</span>
+        </div>
+        @if (form.yapeQrUrl) {
+          <img
+            [src]="form.yapeQrUrl"
+            alt="Vista previa del QR de Yape/Plin"
+            style="margin-top:1rem; width:150px; height:150px; object-fit:contain; background:#fff; border-radius:12px; padding:8px"
+          />
+        }
 
         <div class="form-actions">
           <button class="btn btn-primary" type="submit" [disabled]="saving()">
@@ -102,10 +145,12 @@ function emptyForm(): SiteConfigPayload {
 })
 export class SiteConfigAdmin {
   private readonly api = inject(AdminApiService);
+  private readonly ai = inject(AiAdminService);
   private readonly siteConfig = inject(SiteConfigService);
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly generating = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   protected form: SiteConfigPayload = emptyForm();
@@ -129,12 +174,38 @@ export class SiteConfigAdmin {
           copyrightYear: cfg.copyrightYear,
           marqueeText: cfg.marquee.text,
           marqueeDurationSeconds: cfg.marquee.durationSeconds,
+          yapeQrUrl: cfg.payment?.yapeQrUrl ?? '',
+          yapeNumber: cfg.payment?.yapeNumber ?? '',
+          yapeHolder: cfg.payment?.yapeHolder ?? '',
         };
         this.loading.set(false);
       },
       error: () => {
         this.error.set('No se pudo cargar la configuración.');
         this.loading.set(false);
+      },
+    });
+  }
+
+  /** Redacta la marquesina con la IA usando el contexto real del negocio. */
+  generateMarquee(): void {
+    this.generating.set(true);
+    this.error.set(null);
+    this.message.set(null);
+
+    const brief = this.form.marqueeText
+      ? `Mejora este texto manteniendo el mensaje: ${this.form.marqueeText}`
+      : 'Crea una marquesina destacando las hamburguesas y el delivery.';
+
+    this.ai.generateContent('MARQUEE', brief).subscribe({
+      next: (res) => {
+        this.form.marqueeText = res.text;
+        this.generating.set(false);
+        this.message.set('Marquesina generada. Revísala y guarda si te convence.');
+      },
+      error: (err: Error) => {
+        this.generating.set(false);
+        this.error.set(err.message);
       },
     });
   }

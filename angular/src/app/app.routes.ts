@@ -42,6 +42,13 @@ export const routes: Routes = [
           import('./admin/pages/hero/hero-admin').then((m) => m.HeroAdmin),
       },
       {
+        path: 'ai',
+        loadComponent: () =>
+          import('./admin/pages/ai-knowledge/ai-knowledge-admin').then(
+            (m) => m.AiKnowledgeAdmin,
+          ),
+      },
+      {
         path: 'site',
         loadComponent: () =>
           import('./admin/pages/site-config/site-config-admin').then(

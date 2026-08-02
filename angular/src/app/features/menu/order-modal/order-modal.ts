@@ -19,11 +19,15 @@ export type OrderStep = 'order' | 'rating' | 'thankyou';
 export class OrderModal {
   private readonly http = inject(HttpClient);
 
+  /**
+   * Todos estos datos llegan desde `GET /api/site-config` (ver `MenuSection`).
+   * No se hardcodean aquí: el número y el QR se editan desde `/admin/site`.
+   */
   @Input({ required: true }) item!: MenuItem;
-  @Input() waNumber = '51989451473';
-  @Input() yapeQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE-LA-BUMANGUESA-989451473';
-  @Input() yapeNumber = '989 451 473';
-  @Input() yapeHolder = 'La Bumanguesa Ica';
+  @Input() waNumber = '';
+  @Input() yapeQrUrl = '';
+  @Input() yapeNumber = '';
+  @Input() yapeHolder = '';
 
   @Output() close = new EventEmitter<void>();
 
@@ -89,9 +93,11 @@ export class OrderModal {
       `*Total a pagar: S/ ${total}*`
     ];
 
-    const text = encodeURIComponent(lines.join('\n'));
-    const waUrl = `https://api.whatsapp.com/send?phone=${this.waNumber}&text=${text}`;
-    window.open(waUrl, '_blank');
+    if (this.waNumber) {
+      const text = encodeURIComponent(lines.join('\n'));
+      const waUrl = `https://api.whatsapp.com/send?phone=${this.waNumber}&text=${text}`;
+      window.open(waUrl, '_blank');
+    }
 
     // Move to rating step
     this.step.set('rating');
@@ -100,7 +106,7 @@ export class OrderModal {
   protected submitRating(): void {
     const stars = this.selectedRating();
     const comment = this.userComment();
-    const itemId = parseInt(this.item.id, 10) || 1;
+    const itemId = this.item.itemId;
 
     this.http
       .post(`${API_BASE}/ratings`, { itemId, stars, comment })

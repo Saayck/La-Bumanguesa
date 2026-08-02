@@ -13,6 +13,7 @@ final class MenuItemMapper {
     static MenuItemResponse toResponse(MenuItem e) {
         return new MenuItemResponse(
                 e.getSlug(),
+                e.getId(),
                 e.getTitle(),
                 e.getDescription(),
                 e.getImageUrl(),

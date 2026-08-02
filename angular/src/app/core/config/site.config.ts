@@ -22,4 +22,10 @@ export interface SiteConfig {
     text: string;
     durationSeconds: number;
   };
+  /** Datos de cobro Yape/Plin que muestra el modal de pedido. */
+  payment: {
+    yapeQrUrl: string;
+    yapeNumber: string;
+    yapeHolder: string;
+  };
 }

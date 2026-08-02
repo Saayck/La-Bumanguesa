@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '../../admin-api.service';
+import { AiAdminService } from '../../ai-admin.service';
 import type { MenuItemDto, MenuItemPayload } from '../../models';
 
 function emptyForm(): MenuItemPayload {
@@ -85,8 +86,22 @@ function emptyForm(): MenuItemPayload {
           <input name="imageUrl" [(ngModel)]="form.imageUrl" required maxlength="500" />
         </div>
         <div class="field" style="margin-top:1rem">
-          <label>Descripción</label>
+          <label>
+            Descripción
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              style="margin-left:.5rem"
+              [disabled]="generating() || !form.title"
+              (click)="generateDescription()"
+            >
+              {{ generating() ? '✨ Redactando…' : '✨ Generar con IA' }}
+            </button>
+          </label>
           <textarea name="description" [(ngModel)]="form.description" required maxlength="500"></textarea>
+          <span class="hint">
+            La IA usa el título y la etiqueta de precio como referencia. Revisa el texto antes de guardar.
+          </span>
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" type="submit" [disabled]="saving()">
@@ -134,10 +149,12 @@ function emptyForm(): MenuItemPayload {
 })
 export class MenuAdmin {
   private readonly api = inject(AdminApiService);
+  private readonly ai = inject(AiAdminService);
 
   protected readonly items = signal<MenuItemDto[]>([]);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
+  protected readonly generating = signal(false);
   protected readonly editing = signal(false);
   protected readonly isNew = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -190,6 +207,31 @@ export class MenuAdmin {
 
   cancel(): void {
     this.editing.set(false);
+  }
+
+  /** Pide a la IA una descripción comercial a partir del producto en edición. */
+  generateDescription(): void {
+    this.generating.set(true);
+    this.clearAlerts();
+    const brief = [
+      `Producto: ${this.form.title}`,
+      this.form.badge ? `Precio: ${this.form.badge}` : '',
+      this.form.description ? `Descripción actual a mejorar: ${this.form.description}` : '',
+    ]
+      .filter(Boolean)
+      .join('. ');
+
+    this.ai.generateContent('MENU_DESCRIPTION', brief).subscribe({
+      next: (res) => {
+        this.form.description = res.text;
+        this.generating.set(false);
+        this.message.set('Descripción generada. Revísala y guarda si te convence.');
+      },
+      error: (err: Error) => {
+        this.generating.set(false);
+        this.error.set(err.message);
+      },
+    });
   }
 
   save(): void {

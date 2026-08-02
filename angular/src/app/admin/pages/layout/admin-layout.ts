@@ -17,6 +17,7 @@ import { AuthService } from '../../auth/auth.service';
         <a class="admin-nav-link" routerLink="/admin/videos" routerLinkActive="active">Videos</a>
         <a class="admin-nav-link" routerLink="/admin/locations" routerLinkActive="active">Sedes</a>
         <a class="admin-nav-link" routerLink="/admin/hero" routerLinkActive="active">Hero</a>
+        <a class="admin-nav-link" routerLink="/admin/ai" routerLinkActive="active">🤖 Entrenar IA</a>
         <a class="admin-nav-link" routerLink="/admin/site" routerLinkActive="active">Configuración</a>
       </aside>
       <div class="admin-main">

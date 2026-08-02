@@ -8,6 +8,7 @@ import { VideosSection } from '../videos/videos-section/videos-section';
 import { FacebookCta } from '../facebook-cta/facebook-cta';
 import { LocationsSection } from '../locations/locations-section/locations-section';
 import { Footer } from '../footer/footer';
+import { AiChat } from '../ai/ai-chat/ai-chat';
 import { SiteConfigService } from '../../core/services/site-config.service';
 
 /** Public landing page — composes all the marketing sections. */
@@ -24,6 +25,7 @@ import { SiteConfigService } from '../../core/services/site-config.service';
     FacebookCta,
     LocationsSection,
     Footer,
+    AiChat,
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',

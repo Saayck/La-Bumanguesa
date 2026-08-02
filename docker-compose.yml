@@ -31,6 +31,42 @@ services:
       retries: 10
       start_period: 10s
 
+  # IA open source self-hosted: sin API key, sin costo por token.
+  # Primer arranque: descarga el modelo con
+  #   docker compose exec ollama ollama pull llama3.2:3b
+  ollama:
+    image: ollama/ollama:latest
+    container_name: labumanguesa-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      # El modelo se queda residente en RAM en vez de descargarse a los 5 min.
+      # Sin esto, la primera pregunta tras un rato de calma tarda ~51s en lugar
+      # de ~3s: en una web con tráfico esporádico, eso lo sufre casi cada cliente.
+      OLLAMA_KEEP_ALIVE: "-1"
+      # Solo los dos modelos en uso (generativo + embeddings). Sin este tope,
+      # probar un tercer modelo lo deja cargado y la memoria no vuelve a bajar.
+      OLLAMA_MAX_LOADED_MODELS: "2"
+      # Atención optimizada: menos memoria y algo más rápido en CPU.
+      OLLAMA_FLASH_ATTENTION: "1"
+      # Caché KV en 8 bits en lugar de 16: aproximadamente la mitad de memoria
+      # de caché, con impacto despreciable en la calidad de respuesta.
+      OLLAMA_KV_CACHE_TYPE: "q8_0"
+      # Una petición a la vez: este chat no tiene concurrencia alta y cada
+      # petición paralela reserva su propia caché KV.
+      OLLAMA_NUM_PARALLEL: "1"
+    # Tope duro: si algo intenta cargar un modelo grande, falla en vez de
+    # comerse la RAM del host (fue exactamente lo que pasó al probar qwen2.5:7b).
+    mem_limit: 4g
+    volumes:
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
   api:
     build: ./api
     container_name: labumanguesa-api
@@ -50,9 +86,16 @@ services:
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      AI_ENABLED: ${AI_ENABLED}
+      AI_BASE_URL: ${AI_BASE_URL}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_MODEL: ${AI_MODEL}
+      AI_EMBEDDING_MODEL: ${AI_EMBEDDING_MODEL}
     depends_on:
       db:
         condition: service_healthy
+      ollama:
+        condition: service_started
 
   web:
     build: ./angular
@@ -64,3 +107,4 @@ services:
 
 volumes:
   postgres-data:
+  ollama-models:

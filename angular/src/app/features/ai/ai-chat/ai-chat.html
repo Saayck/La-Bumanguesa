@@ -1,0 +1,90 @@
+@if (available()) {
+  <div class="ai-chat">
+    @if (open()) {
+      <section class="ai-chat__panel" aria-label="Asistente virtual">
+        <header class="ai-chat__header">
+          <div class="ai-chat__identity">
+            <span class="ai-chat__avatar" aria-hidden="true">🍔</span>
+            <div>
+              <p class="ai-chat__name">Asistente {{ brand() }}</p>
+              <p class="ai-chat__status">Responde sobre carta, horarios y pedidos</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="ai-chat__close"
+            aria-label="Cerrar el asistente"
+            (click)="toggle()"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div #scroller class="ai-chat__messages" aria-live="polite">
+          @for (bubble of bubbles(); track $index) {
+            <div
+              class="ai-chat__bubble"
+              [class.ai-chat__bubble--user]="bubble.role === 'user'"
+              [class.ai-chat__bubble--error]="bubble.failed"
+            >
+              {{ bubble.content }}
+            </div>
+          }
+
+          @if (sending()) {
+            <div class="ai-chat__bubble ai-chat__bubble--typing" aria-label="Escribiendo">
+              <span></span><span></span><span></span>
+            </div>
+          }
+
+          @if (bubbles().length <= 1 && !sending()) {
+            <div class="ai-chat__quick">
+              @for (prompt of quickPrompts; track prompt) {
+                <button type="button" class="ai-chat__chip" (click)="useQuickPrompt(prompt)">
+                  {{ prompt }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <form class="ai-chat__form" (ngSubmit)="send()">
+          <input
+            name="draft"
+            class="ai-chat__input"
+            [ngModel]="draft()"
+            (ngModelChange)="draft.set($event)"
+            placeholder="Escribe tu pregunta…"
+            maxlength="1000"
+            autocomplete="off"
+            aria-label="Mensaje para el asistente"
+          />
+          <button
+            type="submit"
+            class="ai-chat__send"
+            [disabled]="sending() || !draft().trim()"
+            aria-label="Enviar mensaje"
+          >
+            ➤
+          </button>
+        </form>
+      </section>
+    }
+
+    <button
+      type="button"
+      class="ai-chat__launcher"
+      [class.ai-chat__launcher--open]="open()"
+      [attr.aria-expanded]="open()"
+      [attr.aria-label]="open() ? 'Cerrar el asistente' : 'Abrir el asistente virtual'"
+      (click)="toggle()"
+    >
+      @if (open()) {
+        <span aria-hidden="true">✕</span>
+      } @else {
+        <span aria-hidden="true">💬</span>
+        <span class="ai-chat__launcher-text">Pregúntale a la IA</span>
+      }
+    </button>
+  </div>
+}

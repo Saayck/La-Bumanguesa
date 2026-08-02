@@ -3,7 +3,10 @@ import type { VideoPlatform } from '../core/models/video.model';
 
 /** Response shapes returned by the admin endpoints (include order/active metadata). */
 export interface MenuItemDto {
+  /** Slug: es la clave que usan las rutas de update/delete del admin. */
   id: string;
+  /** Clave primaria numérica (informativa en el panel). */
+  itemId: number;
   title: string;
   description: string;
   imageUrl: string;
@@ -104,4 +107,7 @@ export interface SiteConfigPayload {
   copyrightYear: number;
   marqueeText: string;
   marqueeDurationSeconds: number;
+  yapeQrUrl: string;
+  yapeNumber: string;
+  yapeHolder: string;
 }

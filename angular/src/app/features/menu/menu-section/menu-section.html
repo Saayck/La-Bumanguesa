@@ -42,6 +42,9 @@
     </button>
   </div>
 
+  <!-- RECOMENDADOR CON IA (se oculta solo si el backend no tiene motor) -->
+  <app-ai-recommender (pick)="openOrderModalById($event)" />
+
   <!-- GRILLA DE PRODUCTOS -->
   @if (activeTab() !== 'extras') {
     <div class="menu-section__grid">
@@ -71,6 +74,13 @@
 
   <!-- MODAL INTERACTIVO DE PEDIDO, PAGO YAPE/PLIN Y CALIFICACIÓN DE IA -->
   @if (selectedOrder(); as selectedItem) {
-    <app-order-modal [item]="selectedItem" (close)="closeOrderModal()" />
+    <app-order-modal
+      [item]="selectedItem"
+      [waNumber]="waNumber()"
+      [yapeQrUrl]="yapeQrUrl()"
+      [yapeNumber]="yapeNumber()"
+      [yapeHolder]="yapeHolder()"
+      (close)="closeOrderModal()"
+    />
   }
 </section>

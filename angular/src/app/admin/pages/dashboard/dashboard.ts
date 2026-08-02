@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { AdminApiService } from '../../admin-api.service';
+import { AiAdminService, type AiInsightsResponse } from '../../ai-admin.service';
 import { API_BASE } from '../../../core/config/api.config';
 
 interface ResourceStat {
@@ -98,6 +99,63 @@ interface AiRankingResponse {
         </div>
       </div>
 
+      <!-- PANEL IA: LECTURA DE OPINIONES DE CLIENTES -->
+      <div class="dashboard-section">
+        <div class="dashboard-section__header">
+          <div>
+            <h2 class="dashboard-section__title">
+              <span>💬</span> Qué dicen los clientes (análisis por IA)
+            </h2>
+            <p class="dashboard-section__desc">
+              Lectura automática de los comentarios más recientes, en fortalezas y oportunidades de mejora.
+            </p>
+          </div>
+          <button class="btn btn-primary" [disabled]="insightsLoading()" (click)="loadInsights()">
+            {{ insightsLoading() ? 'Analizando…' : '🔍 Analizar opiniones' }}
+          </button>
+        </div>
+
+        @if (insightsError()) {
+          <div class="alert alert-error">{{ insightsError() }}</div>
+        } @else if (insights(); as data) {
+          <p style="color: var(--admin-muted); font-size: 0.8rem; margin: 0 0 0.75rem">
+            {{ data.analyzedComments }} comentarios analizados
+          </p>
+          <p style="color: #fff; line-height: 1.6; margin: 0 0 1.25rem">{{ data.summary }}</p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem">
+            <div style="background: var(--admin-panel-2); padding: 1.25rem; border-radius: 14px; border: 1px solid var(--admin-border-soft)">
+              <h3 style="margin: 0 0 0.75rem; font-size: 0.85rem; text-transform: uppercase; color: var(--admin-green)">
+                ✅ Lo que más gusta
+              </h3>
+              <ul style="margin: 0; padding-left: 1.1rem; color: #fff; line-height: 1.8">
+                @for (item of data.strengths; track item) {
+                  <li>{{ item }}</li>
+                } @empty {
+                  <li style="color: var(--admin-muted)">Sin datos suficientes.</li>
+                }
+              </ul>
+            </div>
+            <div style="background: var(--admin-panel-2); padding: 1.25rem; border-radius: 14px; border: 1px solid var(--admin-border-soft)">
+              <h3 style="margin: 0 0 0.75rem; font-size: 0.85rem; text-transform: uppercase; color: var(--admin-yellow)">
+                ⚡ Oportunidades de mejora
+              </h3>
+              <ul style="margin: 0; padding-left: 1.1rem; color: #fff; line-height: 1.8">
+                @for (item of data.improvements; track item) {
+                  <li>{{ item }}</li>
+                } @empty {
+                  <li style="color: var(--admin-muted)">Sin datos suficientes.</li>
+                }
+              </ul>
+            </div>
+          </div>
+        } @else {
+          <div class="empty">
+            Pulsa «Analizar opiniones» para que la IA lea los comentarios más recientes.
+          </div>
+        }
+      </div>
+
       <!-- PANEL DE CONFIGURACIÓN RÁPIDA DE SITIO & YAPE/PLIN -->
       <div class="dashboard-section">
         <div class="dashboard-section__header">
@@ -138,7 +196,12 @@ interface AiRankingResponse {
 })
 export class Dashboard {
   private readonly api = inject(AdminApiService);
+  private readonly ai = inject(AiAdminService);
   private readonly http = inject(HttpClient);
+
+  protected readonly insights = signal<AiInsightsResponse | null>(null);
+  protected readonly insightsLoading = signal(false);
+  protected readonly insightsError = signal<string | null>(null);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -180,6 +243,23 @@ export class Dashboard {
       error: () => {
         this.error.set('No se pudieron cargar las métricas. ¿El backend está en ejecución?');
         this.loading.set(false);
+      },
+    });
+  }
+
+  /** Bajo demanda: la inferencia consume CPU, no se lanza al abrir el dashboard. */
+  protected loadInsights(): void {
+    this.insightsLoading.set(true);
+    this.insightsError.set(null);
+
+    this.ai.insights().subscribe({
+      next: (data) => {
+        this.insights.set(data);
+        this.insightsLoading.set(false);
+      },
+      error: (err: Error) => {
+        this.insightsError.set(err.message);
+        this.insightsLoading.set(false);
       },
     });
   }

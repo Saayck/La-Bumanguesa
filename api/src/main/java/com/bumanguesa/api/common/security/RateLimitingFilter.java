@@ -24,9 +24,12 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final int LOGIN_MAX_REQUESTS_PER_MINUTE = 5;
     private static final int GENERAL_MAX_REQUESTS_PER_MINUTE = 100;
+    /** La inferencia es cara en CPU/GPU: cupo propio, mucho más estrecho. */
+    private static final int AI_MAX_REQUESTS_PER_MINUTE = 12;
 
     private final Map<String, RequestBucket> loginBuckets = new ConcurrentHashMap<>();
     private final Map<String, RequestBucket> generalBuckets = new ConcurrentHashMap<>();
+    private final Map<String, RequestBucket> aiBuckets = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,9 +42,17 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         boolean isLoginRequest = path.startsWith("/api/auth/login") && "POST".equalsIgnoreCase(request.getMethod());
 
+        boolean isAiRequest = isAiInference(path, request.getMethod());
+
         if (isLoginRequest) {
             if (isRateLimited(loginBuckets, clientIp, LOGIN_MAX_REQUESTS_PER_MINUTE, now)) {
                 sendRateLimitResponse(request, response, "Demasiados intentos de inicio de sesión. Por favor espera 1 minuto.");
+                return;
+            }
+        } else if (isAiRequest) {
+            if (isRateLimited(aiBuckets, clientIp, AI_MAX_REQUESTS_PER_MINUTE, now)) {
+                sendRateLimitResponse(request, response,
+                        "Estás usando el asistente muy rápido. Espera un momento antes de volver a preguntar.");
                 return;
             }
         } else if (path.startsWith("/api/")) {
@@ -52,6 +63,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Solo las rutas que disparan inferencia real. {@code GET /api/ai/status} se
+     * consulta al cargar la página y no debe consumir el cupo del asistente.
+     */
+    private boolean isAiInference(String path, String method) {
+        return "POST".equalsIgnoreCase(method)
+                && (path.startsWith("/api/ai/") || path.startsWith("/api/admin/ai/"));
     }
 
     private boolean isRateLimited(Map<String, RequestBucket> map, String ip, int maxRequests, long now) {

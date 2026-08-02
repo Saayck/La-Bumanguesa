@@ -53,6 +53,14 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "El cuerpo de la petición contiene formato o valores no válidos.", req);
     }
 
+    /** El motor de IA está apagado, caído o devolvió algo inutilizable. */
+    @ExceptionHandler(com.bumanguesa.api.ai.client.AiUnavailableException.class)
+    public ResponseEntity<ApiError> handleAiUnavailable(
+            com.bumanguesa.api.ai.client.AiUnavailableException ex, HttpServletRequest req) {
+        log.warn("Asistente de IA no disponible en [{}]: {}", req.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), req);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest req) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
