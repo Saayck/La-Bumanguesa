@@ -40,9 +40,12 @@ public class SecurityConfig {
     private static final String[] PUBLIC_GET = {
             "/api/site-config",
             "/api/menu-items",
+            "/api/menu-categories",
+            "/api/menu-extras",
             "/api/videos",
             "/api/locations",
-            "/api/hero-slides"
+            "/api/hero-slides",
+            "/api/ai/suggestions"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

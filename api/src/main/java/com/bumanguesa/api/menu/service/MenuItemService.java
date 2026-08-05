@@ -1,6 +1,8 @@
 package com.bumanguesa.api.menu.service;
 
+import com.bumanguesa.api.menu.domain.MenuCategory;
 import com.bumanguesa.api.menu.domain.MenuItem;
+import com.bumanguesa.api.menu.repository.MenuCategoryRepository;
 import com.bumanguesa.api.menu.repository.MenuItemRepository;
 
 import com.bumanguesa.api.common.exception.DuplicateResourceException;
@@ -16,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MenuItemService {
 
     private final MenuItemRepository repository;
+    private final MenuCategoryRepository categoryRepository;
 
-    public MenuItemService(MenuItemRepository repository) {
+    public MenuItemService(MenuItemRepository repository, MenuCategoryRepository categoryRepository) {
         this.repository = repository;
+        this.categoryRepository = categoryRepository;
     }
 
     /** Active items, ordered — this is what the public site renders. */
@@ -44,7 +48,9 @@ public class MenuItemService {
         if (repository.existsBySlug(request.slug())) {
             throw new DuplicateResourceException("Ya existe un menu item con el slug: " + request.slug());
         }
-        MenuItem saved = repository.save(MenuItemMapper.toEntity(request));
+        MenuItem entity = MenuItemMapper.toEntity(request);
+        assignCategory(entity, request.categorySlug());
+        MenuItem saved = repository.save(entity);
         return MenuItemMapper.toResponse(saved);
     }
 
@@ -55,7 +61,16 @@ public class MenuItemService {
             throw new DuplicateResourceException("Ya existe un menu item con el slug: " + request.slug());
         }
         MenuItemMapper.apply(entity, request);
+        assignCategory(entity, request.categorySlug());
         return MenuItemMapper.toResponse(repository.save(entity));
+    }
+
+    private void assignCategory(MenuItem entity, String categorySlug) {
+        if (categorySlug != null && !categorySlug.isBlank()) {
+            MenuCategory category = categoryRepository.findBySlug(categorySlug.trim())
+                    .orElse(null);
+            entity.setCategory(category);
+        }
     }
 
     @Transactional

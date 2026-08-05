@@ -25,7 +25,7 @@
             <span class="option-label">Modalidad:</span>
             <label class="toggle-takeaway">
               <input type="checkbox" [checked]="isTakeaway()" (change)="isTakeaway.set(!isTakeaway())" />
-              <span>🛍️ Para llevar (+S/ 1.00)</span>
+              <span>🛍️ Para llevar (+S/ {{ takeawayFee.toFixed(2) }})</span>
             </label>
           </div>
         </div>
@@ -34,14 +34,14 @@
         <div class="modal-section">
           <h3 class="section-title">➕ Adicionales (Opcional):</h3>
           <div class="extras-grid">
-            @for (extra of availableExtras; track extra.name) {
+            @for (extra of availableExtras(); track extra.id) {
               <button
                 type="button"
                 class="extra-chip"
                 [class.extra-chip--active]="selectedExtras().includes(extra.name)"
                 (click)="toggleExtra(extra.name)"
               >
-                {{ extra.name }} (+S/ {{ extra.price }})
+                {{ extra.name }} (+{{ extra.priceLabel }})
               </button>
             }
           </div>

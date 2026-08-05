@@ -10,10 +10,12 @@ import com.bumanguesa.api.ai.dto.RecommendResponse;
 import com.bumanguesa.api.ai.security.PromptGuard;
 import com.bumanguesa.api.ai.security.SemanticGuard;
 import com.bumanguesa.api.common.security.SecurityAuditLogger;
+import com.bumanguesa.api.menu.domain.MenuExtra;
 import com.bumanguesa.api.menu.domain.MenuItem;
 import com.bumanguesa.api.rating.domain.BurgerRating;
 import com.bumanguesa.api.rating.repository.BurgerRatingRepository;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,7 @@ public class AiAssistantService {
     private static final int CONTENT_MAX_TOKENS = 300;
     private static final int INSIGHTS_MAX_TOKENS = 700;
     private static final int MAX_SUGGESTIONS = 3;
+    private static final int MAX_EXTRAS = 3;
 
     private final OpenAiCompatibleChatClient client;
     private final RestaurantKnowledgeBase knowledgeBase;
@@ -123,9 +126,14 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
                 deriva al WhatsApp de pedidos, siempre con buena onda.
 
                 OJO: "derivar a WhatsApp" es para las GESTIONES, no para los datos de contacto. \
-                Si te preguntan el número de WhatsApp, la dirección de una sede, el horario o las \
-                formas de pago, DALOS tal cual figuran en el expediente. Nunca respondas "consúltalo \
-                por WhatsApp" a una pregunta cuya respuesta ya tienes delante.
+                Si te preguntan el número de WhatsApp, la dirección de una sede, el horario, las \
+                redes sociales o las formas de pago, DALOS tal cual figuran en el expediente. Nunca \
+                respondas "consúltalo por WhatsApp" a una pregunta cuya respuesta ya tienes delante, \
+                y nunca escribas la palabra "derivar" en tu respuesta. Por ejemplo:
+                - "¿Cuál es su WhatsApp?" -> "Nuestro WhatsApp de pedidos es %s."
+                - "¿Dónde quedan?" -> lista TODAS las sedes con su nombre y dirección completa, y \
+                nada más. No digas qué se puede o no hacer en cada una (si una es solo para recoger, \
+                si una atiende en salón…): eso no está en el expediente y lo estarías inventando.
 
                 NO INVENTES lo que NO esté en el expediente. Si un dato no aparece ahí literalmente, \
                 no lo sabes y debes decirlo. Nunca supongas ni completes con lo que suele tener un \
@@ -143,6 +151,12 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
                 - "¿Reparten a mi zona?" -> "La cobertura la confirman por WhatsApp. Escríbenos y te avisan al toque."
                 - "¿Tienen wifi / estacionamiento?" -> "No tengo ese dato. Consúltalo por WhatsApp, porfa."
                 - "¿Aceptan reservas?" -> "Eso se ve por WhatsApp. Escríbenos y te ayudan."
+                - "¿Puedo reservar una mesa?" -> "Eso lo gestionan por WhatsApp. Escríbenos y te confirman."
+
+                AL DERIVAR, NUNCA AFIRMES NI NIEGUES EL SERVICIO. No sabes si existe, así que no
+                empieces con "Sí, aceptamos…" ni con "No tenemos…": eso sería inventarte un dato.
+                Ve directo a quién lo resuelve. Mal: "Sí, aceptamos reservas, consúltalo por WhatsApp".
+                Bien: "Eso lo gestionan por WhatsApp. Escríbenos y te confirman".
                 - "¿Dónde está mi pedido?" -> "El seguimiento va por WhatsApp. Escríbenos con tu pedido y te ubican."
 
                 OTRAS REGLAS:
@@ -164,7 +178,11 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
 
                 EXPEDIENTE DEL NEGOCIO (única fuente de verdad):
                 %s
-                """.formatted(guard.canaryLine(), PromptGuard.SAFE_FALLBACK, knowledgeBase.buildContext());
+                """.formatted(
+                        guard.canaryLine(),
+                        knowledgeBase.whatsappDisplay(),
+                        PromptGuard.SAFE_FALLBACK,
+                        knowledgeBase.buildContext());
 
         List<ChatTurn> turns = new ArrayList<>();
         turns.add(ChatTurn.system(system));
@@ -215,16 +233,32 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
             throw new AiUnavailableException("Todavía no hay productos en la carta para recomendar.");
         }
 
+        // Los adicionales se piden por NOMBRE, no por índice. Un modelo pequeño
+        // mapea mal 24 números (elegía "Carne de Hamburguesa" mientras el texto
+        // hablaba de queso), pero acierta con nombres, que además son públicos.
+        // El servidor solo acepta nombres que existan de verdad en la BD.
+        List<MenuExtra> extras = knowledgeBase.activeExtras();
+        Map<String, MenuExtra> extrasByName = new LinkedHashMap<>();
+        StringBuilder extrasPrompt = new StringBuilder();
+        for (MenuExtra extra : extras) {
+            extrasByName.put(normalizeName(extra.getName()), extra);
+            extrasPrompt.append("- ").append(extra.getName())
+                    .append(" (S/ ").append(extra.getPrice()).append(")\n");
+        }
+
         String system = """
-                Eres un mesero experto que recomienda platos de una carta cerrada.
+                Eres un mesero experto que recomienda de una carta cerrada.
 
                 Devuelve EXCLUSIVAMENTE un objeto JSON con esta forma exacta, sin texto adicional \
                 ni bloques de código:
-                {"intro":"una frase corta y apetitosa","suggestions":[{"opcion":1,"reason":"por qué le queda bien, máximo 20 palabras"}]}
+                {"intro":"una frase corta y apetitosa","suggestions":[{"opcion":1,"reason":"por qué le queda bien, máximo 20 palabras"}],"adicionales":[{"nombre":"Queso Cheddar","reason":"por qué combina, máximo 12 palabras"}]}
 
                 REGLAS:
-                - Entre 1 y %d sugerencias, ordenadas de mejor a peor coincidencia.
-                - `opcion` DEBE ser uno de los números de la lista de abajo. Nunca inventes números.
+                - Da SIEMPRE %d sugerencias de hamburguesa, de mejor a peor coincidencia. Nunca menos.
+                - Añade entre 2 y %d adicionales que combinen con lo que sugieres.
+                - `opcion` DEBE ser un número de la carta. `nombre` DEBE estar copiado LITERALMENTE
+                  de la lista de adicionales. Nunca inventes números ni nombres.
+                - El `reason` de cada adicional debe hablar de ESE adicional, no de otro.
                 - En `reason` NO escribas el nombre del producto: la web ya lo muestra al lado. Explica \
                 solo POR QUÉ le queda bien ("lleva doble queso y tocineta ahumada"). Así nunca hay \
                 desajuste entre el texto y la tarjeta.
@@ -234,7 +268,9 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
 
                 CARTA DISPONIBLE:
                 %s
-                """.formatted(MAX_SUGGESTIONS, catalog.promptText());
+                ADICIONALES DISPONIBLES:
+                %s
+                """.formatted(MAX_SUGGESTIONS, MAX_EXTRAS, catalog.promptText(), extrasPrompt);
 
         String raw = client.complete(
                 List.of(ChatTurn.system(system), ChatTurn.user(craving)),
@@ -264,14 +300,25 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
                     item.getTitle(),
                     item.getBadge(),
                     item.getImageUrl(),
-                    text(node.path("reason"), "Una de las favoritas de la casa.")));
+                    safeReason(text(node.path("reason"), ""), item, catalog.byIndex().values())));
         }
 
         if (suggestions.isEmpty()) {
             throw new AiUnavailableException(
                     "No pudimos armar una recomendación esta vez. Prueba describiendo tu antojo de otra forma.");
         }
-        return new RecommendResponse(intro, suggestions);
+
+        List<RecommendResponse.Extra> suggestedExtras =
+                parseExtras(json.path("adicionales"), extrasByName);
+
+        // La sede no la elige el modelo: se toma la primera activa de la BD, así
+        // que la dirección y el mapa son siempre reales.
+        RecommendResponse.Venue venue = knowledgeBase.activeLocations().stream()
+                .findFirst()
+                .map(l -> new RecommendResponse.Venue(l.getName(), l.getAddress(), l.getMapEmbedUrl()))
+                .orElse(null);
+
+        return new RecommendResponse(intro, suggestions, suggestedExtras, venue);
     }
 
     // ------------------------------------------------------------------
@@ -407,6 +454,71 @@ TU ALCANCE es esta web, que es una carta digital: hablas de LA COMIDA.
             }
         }
         return List.copyOf(values);
+    }
+
+    /**
+     * Garantiza que el texto de la sugerencia hable del producto correcto.
+     *
+     * <p>El modelo nombra productos en el motivo aunque se le prohíba, y a veces
+     * se equivoca de producto («Clásica» con el motivo «la Royal es una buena
+     * elección»). Si el motivo menciona OTRA hamburguesa de la carta, se descarta
+     * y se usa la descripción real del producto, que nunca puede estar mal.
+     */
+    private static String safeReason(String reason, MenuItem item, Collection<MenuItem> catalog) {
+        String normalized = normalizeName(reason);
+        boolean mentionsAnotherItem = catalog.stream()
+                .filter(other -> !other.getId().equals(item.getId()))
+                .anyMatch(other -> normalized.contains(normalizeName(other.getTitle())));
+
+        if (reason.isBlank() || mentionsAnotherItem) {
+            String description = item.getDescription();
+            return description.length() > 110
+                    ? description.substring(0, 107).trim() + "…"
+                    : description;
+        }
+        return reason;
+    }
+
+    /**
+     * Convierte los adicionales propuestos por el modelo en los reales.
+     *
+     * <p>Descarta lo que no exista literalmente en la carta y los repetidos: el
+     * modelo sugiere, la base de datos decide.
+     */
+    private static List<RecommendResponse.Extra> parseExtras(JsonNode nodes,
+                                                             Map<String, MenuExtra> byName) {
+        List<RecommendResponse.Extra> result = new ArrayList<>();
+        for (JsonNode node : nodes) {
+            if (result.size() >= MAX_EXTRAS) {
+                break;
+            }
+            JsonNode nameNode = node.path("nombre");
+            if (!nameNode.isString()) {
+                continue;
+            }
+            MenuExtra extra = byName.get(normalizeName(nameNode.stringValue()));
+            if (extra == null || result.stream().anyMatch(e -> e.id().equals(extra.getId()))) {
+                continue;
+            }
+            result.add(new RecommendResponse.Extra(
+                    extra.getId(),
+                    extra.getName(),
+                    "S/ %.2f".formatted(extra.getPrice()),
+                    text(node.path("reason"), "Combina bien.")));
+        }
+        return result;
+    }
+
+    /**
+     * Normaliza el nombre de un adicional para compararlo: sin tildes, sin
+     * mayúsculas y sin espacios de más. Así «queso cheddar» casa con
+     * «Queso Cheddar» sin aceptar nada que no esté en la carta.
+     */
+    private static String normalizeName(String name) {
+        return java.text.Normalizer.normalize(name.trim(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replaceAll("\\s+", " ")
+                .toLowerCase(java.util.Locale.ROOT);
     }
 
     /** Quita comillas envolventes y viñetas que algunos modelos añaden de más. */

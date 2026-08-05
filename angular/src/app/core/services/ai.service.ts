@@ -20,14 +20,39 @@ export interface AiSuggestion {
   reason: string;
 }
 
+/** Adicional sugerido para completar el pedido. */
+export interface AiExtra {
+  id: number;
+  name: string;
+  priceLabel: string;
+  reason: string;
+}
+
+/** Sede sugerida. La elige el servidor desde la BD, no el modelo. */
+export interface AiVenue {
+  name: string;
+  address: string;
+  mapEmbedUrl: string;
+}
+
 export interface AiRecommendResponse {
   intro: string;
   suggestions: AiSuggestion[];
+  extras: AiExtra[];
+  venue: AiVenue | null;
 }
 
 interface AiStatusResponse {
   enabled: boolean;
   model: string;
+}
+
+export interface AiPromptSuggestion {
+  id: number;
+  kind: string;
+  promptText: string;
+  orderIndex: number;
+  active: boolean;
 }
 
 /**
@@ -49,6 +74,10 @@ export class AiService {
       next: (status) => this._enabled.set(status.enabled),
       error: () => this._enabled.set(false),
     });
+  }
+
+  getPromptSuggestions(kind: string): Observable<AiPromptSuggestion[]> {
+    return this.http.get<AiPromptSuggestion[]>(`${API_BASE}/ai/suggestions?kind=${kind}`);
   }
 
   chat(messages: AiTurn[]): Observable<AiChatResponse> {

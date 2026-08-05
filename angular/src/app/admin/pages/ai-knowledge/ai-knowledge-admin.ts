@@ -112,12 +112,47 @@ function emptyForm(): KnowledgePayload {
         </tbody>
       </table>
     }
+
+    <!-- SECCIÓN SUGERENCIAS RÁPIDAS DE IA (D6) -->
+    <div style="margin-top: 3rem;">
+      <div class="toolbar">
+        <div>
+          <h2 class="admin-title" style="font-size: 1.3rem;">Sugerencias rápidas de la IA</h2>
+          <p class="admin-subtitle" style="margin: 0">Chips de ejemplo en el Chat y Recomendador</p>
+        </div>
+      </div>
+
+      @if (suggestions().length === 0) {
+        <div class="empty">No hay sugerencias configuradas.</div>
+      } @else {
+        <table class="admin-table">
+          <thead>
+            <tr><th>Tipo</th><th>Texto de sugerencia</th><th>Orden</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            @for (sug of suggestions(); track sug.id) {
+              <tr>
+                <td><span class="badge-pill">{{ sug.kind === 'chat' ? '💬 Chat' : '🍔 Recomendador' }}</span></td>
+                <td><strong>{{ sug.promptText }}</strong></td>
+                <td>{{ sug.orderIndex }}</td>
+                <td>
+                  <span class="badge-pill" [class.badge-on]="sug.active" [class.badge-off]="!sug.active">
+                    {{ sug.active ? 'Activo' : 'Oculto' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
   `,
 })
 export class AiKnowledgeAdmin {
   private readonly ai = inject(AiAdminService);
 
   protected readonly items = signal<KnowledgeDto[]>([]);
+  protected readonly suggestions = signal<any[]>([]);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly editing = signal(false);
@@ -142,6 +177,10 @@ export class AiKnowledgeAdmin {
         this.error.set('No se pudo cargar la base de conocimiento.');
         this.loading.set(false);
       },
+    });
+    this.ai.suggestionList().subscribe({
+      next: (data) => this.suggestions.set(data),
+      error: () => {},
     });
   }
 
@@ -211,3 +250,4 @@ export class AiKnowledgeAdmin {
     this.message.set(null);
   }
 }
+

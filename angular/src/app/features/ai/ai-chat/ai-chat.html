@@ -39,7 +39,7 @@
 
           @if (bubbles().length <= 1 && !sending()) {
             <div class="ai-chat__quick">
-              @for (prompt of quickPrompts; track prompt) {
+              @for (prompt of quickPrompts(); track prompt) {
                 <button type="button" class="ai-chat__chip" (click)="useQuickPrompt(prompt)">
                   {{ prompt }}
                 </button>

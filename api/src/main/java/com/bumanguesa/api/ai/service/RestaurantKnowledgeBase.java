@@ -3,9 +3,12 @@ package com.bumanguesa.api.ai.service;
 import com.bumanguesa.api.ai.domain.AiKnowledge;
 import com.bumanguesa.api.ai.repository.AiKnowledgeRepository;
 import com.bumanguesa.api.location.domain.Location;
+import com.bumanguesa.api.menu.domain.MenuExtra;
 import com.bumanguesa.api.location.repository.LocationRepository;
 import com.bumanguesa.api.menu.domain.MenuItem;
 import com.bumanguesa.api.menu.repository.MenuItemRepository;
+import com.bumanguesa.api.menu.service.MenuExtraService;
+import com.bumanguesa.api.rating.service.LocalAiRankingService;
 import com.bumanguesa.api.settings.domain.SiteSetting;
 import com.bumanguesa.api.settings.repository.SiteSettingRepository;
 import java.util.Comparator;
@@ -30,15 +33,45 @@ public class RestaurantKnowledgeBase {
     private final LocationRepository locationRepository;
     private final SiteSettingRepository siteSettingRepository;
     private final AiKnowledgeRepository knowledgeRepository;
+    private final MenuExtraService menuExtraService;
+    private final LocalAiRankingService rankingService;
 
     public RestaurantKnowledgeBase(MenuItemRepository menuItemRepository,
                                    LocationRepository locationRepository,
                                    SiteSettingRepository siteSettingRepository,
-                                   AiKnowledgeRepository knowledgeRepository) {
+                                   AiKnowledgeRepository knowledgeRepository,
+                                   MenuExtraService menuExtraService,
+                                   LocalAiRankingService rankingService) {
         this.menuItemRepository = menuItemRepository;
         this.locationRepository = locationRepository;
         this.siteSettingRepository = siteSettingRepository;
         this.knowledgeRepository = knowledgeRepository;
+        this.menuExtraService = menuExtraService;
+        this.rankingService = rankingService;
+    }
+
+    /**
+     * Número de WhatsApp tal como se muestra al público.
+     *
+     * <p>Se usa para construir un ejemplo con el valor real dentro del prompt: con
+     * un marcador tipo {@code [el número]}, el modelo copiaba el marcador literal
+     * en su respuesta en vez de sustituirlo.
+     */
+    public String whatsappDisplay() {
+        return siteSettingRepository.findAll(Sort.by("id")).stream()
+                .findFirst()
+                .map(SiteSetting::getWhatsappDisplay)
+                .orElse("");
+    }
+
+    /** Adicionales activos: los usa el recomendador para completar la sugerencia. */
+    public List<MenuExtra> activeExtras() {
+        return menuExtraService.activeExtras();
+    }
+
+    /** Sedes activas, para sugerir dónde ir. */
+    public List<Location> activeLocations() {
+        return locationRepository.findByActiveTrueOrderByOrderIndexAsc();
     }
 
     /** Productos activos, en el orden en que se muestran en la web. */
@@ -92,6 +125,7 @@ public class RestaurantKnowledgeBase {
             sb.append("Horario lunes a jueves: ").append(cfg.getHoursWeekdays()).append('\n');
             sb.append("Horario viernes a domingo: ").append(cfg.getHoursWeekend()).append('\n');
             appendPayment(sb, cfg);
+            appendSocial(sb, cfg);
             sb.append('\n');
         });
 
@@ -114,6 +148,19 @@ public class RestaurantKnowledgeBase {
             }
             sb.append("El primero de esa lista es el más caro y el último el más barato. ")
                     .append("Varios productos pueden compartir el mismo precio.\n\n");
+        }
+
+        appendRatings(sb);
+
+        List<MenuExtra> extras = menuExtraService.activeExtras();
+        if (!extras.isEmpty()) {
+            sb.append("== ADICIONALES (\"Arma tu burger\") ==\n");
+            for (MenuExtra extra : extras) {
+                sb.append("- ").append(extra.getName())
+                        .append(" | precio: S/ ").append(extra.getPrice())
+                        .append('\n');
+            }
+            sb.append("Se añaden a cualquier hamburguesa y se suman a su precio.\n\n");
         }
 
         // Lo que el negocio le ha enseñado desde el panel. Va antes de las sedes
@@ -150,6 +197,57 @@ public class RestaurantKnowledgeBase {
             return digits.isBlank() ? 0d : Double.parseDouble(digits);
         } catch (NumberFormatException ex) {
             return 0d;
+        }
+    }
+
+    /**
+     * Valoraciones reales de los clientes, ordenadas por el ranking bayesiano que
+     * ya muestra la pestaña "Populares" de la web.
+     *
+     * <p>Sin esto, a la pregunta «¿cuál es la mejor calificada?» el modelo
+     * respondía con la primera de la carta como si fuera un dato, cuando en
+     * realidad estaba adivinando.
+     */
+    private void appendRatings(StringBuilder sb) {
+        var stats = rankingService.getAiRankingStats();
+        var top = stats.rankings().stream()
+                .filter(r -> r.voteCount() > 0)
+                .limit(5)
+                .toList();
+
+        if (top.isEmpty()) {
+            sb.append("== VALORACIONES ==\nAún no hay suficientes valoraciones de clientes "
+                    + "para decir cuál es la mejor calificada.\n\n");
+            return;
+        }
+
+        sb.append("== VALORACIONES DE CLIENTES (mejor calificadas primero) ==\n");
+        for (var rank : top) {
+            sb.append("- ").append(rank.title())
+                    .append(": ").append(rank.averageStars()).append("/5 estrellas")
+                    .append(" con ").append(rank.voteCount()).append(" voto(s)\n");
+        }
+        sb.append("La primera de esa lista es la mejor calificada. ")
+                .append("Total de valoraciones recibidas: ").append(stats.totalRatings()).append(".\n\n");
+    }
+
+    /**
+     * Redes sociales. Sin esto el modelo se inventaba cuentas y contenido
+     * («tenemos un canal de YouTube con videos de cocina»), pese a que las URLs
+     * reales estaban en la configuración del sitio.
+     */
+    private static void appendSocial(StringBuilder sb, SiteSetting cfg) {
+        sb.append("Redes sociales del negocio (son las ÚNICAS que existen):\n");
+        appendLink(sb, "Facebook", cfg.getFacebookUrl());
+        appendLink(sb, "Instagram", cfg.getInstagramUrl());
+        appendLink(sb, "TikTok", cfg.getTiktokUrl());
+        sb.append("En la web hay una sección de videos con contenido de esas redes. ")
+                .append("No existe canal de YouTube ni ninguna otra red.\n");
+    }
+
+    private static void appendLink(StringBuilder sb, String label, String url) {
+        if (url != null && !url.isBlank()) {
+            sb.append("- ").append(label).append(": ").append(url).append('\n');
         }
     }
 

@@ -110,4 +110,6 @@ export interface SiteConfigPayload {
   yapeQrUrl: string;
   yapeNumber: string;
   yapeHolder: string;
+  takeawayFee: number;
 }
+

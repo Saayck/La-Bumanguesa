@@ -12,4 +12,7 @@ export interface MenuItem {
   badgeRotation: number;
   accent: BrandAccent;
   ctaLabel: string;
+  categorySlug?: string;
+  categoryLabel?: string;
 }
+

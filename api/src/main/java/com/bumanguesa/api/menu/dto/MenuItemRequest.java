@@ -30,5 +30,7 @@ public record MenuItemRequest(
         @NotBlank @Size(max = 60) @SanitizedText String ctaLabel,
 
         @NotNull @Min(0) Integer orderIndex,
-        @NotNull Boolean active) {
+        @NotNull Boolean active,
+        String categorySlug) {
 }
+

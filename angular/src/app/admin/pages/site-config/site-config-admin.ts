@@ -25,6 +25,7 @@ function emptyForm(): SiteConfigPayload {
     yapeQrUrl: '',
     yapeNumber: '',
     yapeHolder: '',
+    takeawayFee: 1.00,
   };
 }
 
@@ -134,6 +135,15 @@ function emptyForm(): SiteConfigPayload {
           />
         }
 
+        <h3>Opciones de pedido</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Recargo "para llevar" (S/)</label>
+            <input name="takeawayFee" type="number" step="0.50" min="0" [(ngModel)]="form.takeawayFee" required />
+            <span class="hint">Costo del empaque aplicado en pedidos para llevar</span>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button class="btn btn-primary" type="submit" [disabled]="saving()">
             {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
@@ -177,6 +187,7 @@ export class SiteConfigAdmin {
           yapeQrUrl: cfg.payment?.yapeQrUrl ?? '',
           yapeNumber: cfg.payment?.yapeNumber ?? '',
           yapeHolder: cfg.payment?.yapeHolder ?? '',
+          takeawayFee: cfg.takeawayFee ?? 1.00,
         };
         this.loading.set(false);
       },

@@ -10,7 +10,7 @@ final class SiteSettingMapper {
     private SiteSettingMapper() {
     }
 
-    static SiteSettingResponse toResponse(SiteSetting e) {
+    static SiteSettingResponse toResponse(SiteSetting e, java.util.Map<String, SiteSettingResponse.SectionTitleDto> sectionTitles) {
         return new SiteSettingResponse(
                 e.getBrand(),
                 e.getCity(),
@@ -29,7 +29,9 @@ final class SiteSettingMapper {
                         e.getYapeQrUrl() != null ? e.getYapeQrUrl() : "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE-LA-BUMANGUESA-989451473",
                         e.getYapeNumber() != null ? e.getYapeNumber() : "989 451 473",
                         e.getYapeHolder() != null ? e.getYapeHolder() : "La Bumanguesa Ica"
-                ));
+                ),
+                e.getTakeawayFee() != null ? e.getTakeawayFee() : new java.math.BigDecimal("1.00"),
+                sectionTitles);
     }
 
     /** Copies all editable fields from the request onto the entity. */
@@ -53,5 +55,7 @@ final class SiteSettingMapper {
         if (r.yapeQrUrl() != null) e.setYapeQrUrl(r.yapeQrUrl());
         if (r.yapeNumber() != null) e.setYapeNumber(r.yapeNumber());
         if (r.yapeHolder() != null) e.setYapeHolder(r.yapeHolder());
+        if (r.takeawayFee() != null) e.setTakeawayFee(r.takeawayFee());
     }
 }
+

@@ -59,7 +59,31 @@ export class AiAdminService {
   knowledgeDelete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/knowledge/${id}`);
   }
+
+  // ---- Sugerencias rápidas de IA -------------------------------------
+  suggestionList(): Observable<SuggestionDto[]> {
+    return this.http.get<SuggestionDto[]>(`${this.base}/suggestions`);
+  }
+  suggestionCreate(payload: SuggestionPayload): Observable<SuggestionDto> {
+    return this.http.post<SuggestionDto>(`${this.base}/suggestions`, payload);
+  }
+  suggestionUpdate(id: number, payload: SuggestionPayload): Observable<SuggestionDto> {
+    return this.http.put<SuggestionDto>(`${this.base}/suggestions/${id}`, payload);
+  }
+  suggestionDelete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/suggestions/${id}`);
+  }
 }
+
+export interface SuggestionDto {
+  id: number;
+  kind: string;
+  promptText: string;
+  orderIndex: number;
+  active: boolean;
+}
+export type SuggestionPayload = Omit<SuggestionDto, 'id'>;
+
 
 function toFriendlyError(error: HttpErrorResponse): Observable<never> {
   const fromApi = typeof error.error?.message === 'string' ? error.error.message : null;

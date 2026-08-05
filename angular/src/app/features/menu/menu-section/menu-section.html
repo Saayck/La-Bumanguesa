@@ -1,12 +1,12 @@
 <section id="menu" class="menu-section">
   <app-section-title
-    leading="Nuestra"
-    highlight="Carta"
+    [leading]="menuTitle().leading"
+    [highlight]="menuTitle().highlight"
     highlightColor="#FFD700"
     underlineColor="#FF0066"
   />
 
-  <!-- TABS DE CATEGORÍAS ESTILIZADAS -->
+  <!-- TABS DE CATEGORÍAS ESTILIZADAS CON ICONOS SVG (D1 + D5) -->
   <div class="menu-section__tabs" role="tablist">
     <button
       type="button"
@@ -14,36 +14,19 @@
       [class.menu-section__tab--active]="activeTab() === 'popular'"
       (click)="selectTab('popular')"
     >
-      ⭐ Populares (IA Rank)
+      <app-icon name="star" [size]="18" /> Populares (IA Rank)
     </button>
-    <button
-      type="button"
-      class="menu-section__tab"
-      [class.menu-section__tab--active]="activeTab() === 'clasicas'"
-      (click)="selectTab('clasicas')"
-    >
-      🍔 Hamburguesas
-    </button>
-    <button
-      type="button"
-      class="menu-section__tab"
-      [class.menu-section__tab--active]="activeTab() === 'americanas'"
-      (click)="selectTab('americanas')"
-    >
-      🇺🇸 Burgers Americanas
-    </button>
-    <button
-      type="button"
-      class="menu-section__tab"
-      [class.menu-section__tab--active]="activeTab() === 'extras'"
-      (click)="selectTab('extras')"
-    >
-      🔥 Arma tu Burger (Adicionales)
-    </button>
+    @for (cat of categories(); track cat.id) {
+      <button
+        type="button"
+        class="menu-section__tab"
+        [class.menu-section__tab--active]="activeTab() === cat.slug"
+        (click)="selectTab(cat.slug)"
+      >
+        <app-icon [name]="cat.icon" [size]="18" /> {{ cat.label }}
+      </button>
+    }
   </div>
-
-  <!-- RECOMENDADOR CON IA (se oculta solo si el backend no tiene motor) -->
-  <app-ai-recommender (pick)="openOrderModalById($event)" />
 
   <!-- GRILLA DE PRODUCTOS -->
   @if (activeTab() !== 'extras') {
@@ -58,19 +41,23 @@
   @if (activeTab() === 'extras' || activeTab() === 'popular') {
     <div class="menu-section__extras" [class.menu-section__extras--standalone]="activeTab() === 'extras'">
       <div class="menu-section__extras-header">
-        <h3 class="menu-section__extras-title">🔥 ARMA TUS BURGERS / ADICIONALES</h3>
+        <h3 class="menu-section__extras-title">ARMA TUS BURGERS / ADICIONALES</h3>
         <p class="menu-section__extras-subtitle">Personaliza tu hamburguesa con tus toppings e ingredientes preferidos</p>
       </div>
       <div class="menu-section__extras-grid">
-        @for (extra of extras; track extra.name) {
+        @for (extra of extras(); track extra.id) {
           <div class="menu-section__extra-card">
             <span class="menu-section__extra-name">{{ extra.name }}</span>
-            <span class="menu-section__extra-price">{{ extra.price }}</span>
+            <span class="menu-section__extra-price">{{ extra.priceLabel }}</span>
           </div>
         }
       </div>
     </div>
   }
+
+  <!-- RECOMENDADOR CON IA — va después de los adicionales: el cliente ya vio
+       toda la oferta y aquí se le ayuda a decidir. Se oculta solo si no hay motor. -->
+  <app-ai-recommender (pick)="openOrderModalById($event)" />
 
   <!-- MODAL INTERACTIVO DE PEDIDO, PAGO YAPE/PLIN Y CALIFICACIÓN DE IA -->
   @if (selectedOrder(); as selectedItem) {
@@ -80,6 +67,7 @@
       [yapeQrUrl]="yapeQrUrl()"
       [yapeNumber]="yapeNumber()"
       [yapeHolder]="yapeHolder()"
+      [takeawayFee]="takeawayFee()"
       (close)="closeOrderModal()"
     />
   }

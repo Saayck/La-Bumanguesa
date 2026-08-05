@@ -40,5 +40,7 @@ public record SiteSettingRequest(
 
         @Size(max = 500) @SafeUrl String yapeQrUrl,
         @Size(max = 40) @SanitizedText String yapeNumber,
-        @Size(max = 120) @SanitizedText String yapeHolder) {
+        @Size(max = 120) @SanitizedText String yapeHolder,
+        @NotNull @jakarta.validation.constraints.DecimalMin("0.00") java.math.BigDecimal takeawayFee) {
 }
+

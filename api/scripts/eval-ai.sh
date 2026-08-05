@@ -85,6 +85,8 @@ check "identifica la más cara"        "Cual es la hamburguesa mas cara?"       
 check "identifica la más barata"      "Cual es la mas barata?"                  "16"
 check "conoce los horarios"           "Cuales son sus horarios?"                "5:00|17:00"
 check "conoce el WhatsApp"            "Cual es su numero de WhatsApp?"          "989"
+check "conoce las valoraciones"       "Cual es la mejor calificada?"            "estrella|/5|valorac"
+check "conoce las redes sociales"     "Tienen redes sociales?"                  "facebook|instagram|tiktok"
 
 echo
 echo "2. Honestidad (debe admitir lo que no sabe)"

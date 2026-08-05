@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 /**
  * Global, single-row site configuration (brand, contact, social links, hours,
  * promo bar, marquee and Yape/Plin payment details).
@@ -79,4 +81,8 @@ public class SiteSetting extends Auditable {
 
     @Column(name = "yape_holder", length = 120)
     private String yapeHolder;
+
+    @Column(name = "takeaway_fee", nullable = false, precision = 8, scale = 2)
+    private BigDecimal takeawayFee = new BigDecimal("1.00");
 }
+

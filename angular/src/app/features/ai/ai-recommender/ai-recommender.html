@@ -1,31 +1,58 @@
 @if (available()) {
-  <section class="ai-rec" aria-label="Recomendador inteligente">
+  <section class="ai-rec" aria-labelledby="ai-rec-title">
+    <!-- CABECERA -->
     <header class="ai-rec__header">
-      <h3 class="ai-rec__title"><span aria-hidden="true">🤖</span> ¿No sabes qué pedir?</h3>
+      <span class="ai-rec__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v3" />
+          <rect x="4" y="5" width="16" height="13" rx="3" />
+          <circle cx="9" cy="11" r="1.3" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="11" r="1.3" fill="currentColor" stroke="none" />
+          <path d="M9 15h6" />
+          <path d="M2 11v3M22 11v3" />
+        </svg>
+      </span>
+      <h3 id="ai-rec-title" class="ai-rec__title">¿No sabes qué pedir?</h3>
       <p class="ai-rec__subtitle">
-        Cuéntanos qué se te antoja y nuestra IA elige de la carta por ti.
+        Dinos qué se te antoja y armamos tu pedido: hamburguesa, adicionales y dónde comerla.
       </p>
     </header>
 
+    <!-- BUSCADOR -->
     <form class="ai-rec__form" (ngSubmit)="ask()">
-      <input
-        name="craving"
-        class="ai-rec__input"
-        [ngModel]="craving()"
-        (ngModelChange)="craving.set($event)"
-        placeholder="Ej: algo con harto queso y que no pase de S/ 25"
-        maxlength="300"
-        autocomplete="off"
-        aria-label="Describe tu antojo"
-      />
+      <label class="ai-rec__field">
+        <span class="sr-only">Describe tu antojo</span>
+        <span class="ai-rec__field-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+        </span>
+        <input
+          name="craving"
+          class="ai-rec__input"
+          [ngModel]="craving()"
+          (ngModelChange)="craving.set($event)"
+          placeholder="Ej: algo con harto queso y que no pase de S/ 25"
+          maxlength="300"
+          autocomplete="off"
+        />
+      </label>
       <button type="submit" class="ai-rec__submit" [disabled]="loading() || !craving().trim()">
-        {{ loading() ? 'Pensando…' : 'Recomiéndame' }}
+        @if (loading()) {
+          <span class="ai-rec__spinner" aria-hidden="true"></span> Pensando…
+        } @else {
+          Recomiéndame
+        }
       </button>
     </form>
 
+    <!-- SUGERENCIAS RÁPIDAS -->
     @if (!intro() && !loading() && !error()) {
       <div class="ai-rec__examples">
-        @for (example of examples; track example) {
+        @for (example of examples(); track example) {
           <button type="button" class="ai-rec__chip" (click)="useExample(example)">
             {{ example }}
           </button>
@@ -34,31 +61,92 @@
     }
 
     @if (error()) {
-      <p class="ai-rec__error">{{ error() }}</p>
+      <p class="ai-rec__error" role="alert">{{ error() }}</p>
     }
 
+    <!-- RESULTADO -->
     @if (intro(); as introText) {
-      <p class="ai-rec__intro">{{ introText }}</p>
-    }
+      <div class="ai-rec__result">
+        <p class="ai-rec__intro">{{ introText }}</p>
 
-    @if (suggestions().length > 0) {
-      <ul class="ai-rec__list">
-        @for (suggestion of suggestions(); track suggestion.itemId; let i = $index) {
-          <li class="ai-rec__item">
-            <img class="ai-rec__thumb" [src]="suggestion.imageUrl" [alt]="suggestion.title" />
-            <div class="ai-rec__info">
-              <p class="ai-rec__item-title">
-                <span class="ai-rec__rank">#{{ i + 1 }}</span> {{ suggestion.title }}
-                <span class="ai-rec__price">{{ suggestion.badge }}</span>
-              </p>
-              <p class="ai-rec__reason">{{ suggestion.reason }}</p>
-            </div>
-            <button type="button" class="ai-rec__pick" (click)="choose(suggestion.itemId)">
-              Pedir
-            </button>
-          </li>
+        <ul class="ai-rec__list">
+          @for (suggestion of suggestions(); track suggestion.itemId; let i = $index) {
+            <li class="ai-rec__item">
+              <span class="ai-rec__rank" aria-hidden="true">{{ i + 1 }}</span>
+              <img class="ai-rec__thumb" [src]="suggestion.imageUrl" [alt]="suggestion.title" />
+              <div class="ai-rec__info">
+                <p class="ai-rec__item-title">
+                  {{ suggestion.title }}
+                  <span class="ai-rec__price">{{ suggestion.badge }}</span>
+                </p>
+                <p class="ai-rec__reason">{{ suggestion.reason }}</p>
+              </div>
+              <button type="button" class="ai-rec__pick" (click)="choose(suggestion.itemId)">
+                Pedir
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h13M13 6l6 6-6 6" />
+                </svg>
+              </button>
+            </li>
+          }
+        </ul>
+
+        <!-- ADICIONALES QUE COMBINAN -->
+        @if (extras().length > 0) {
+          <div class="ai-rec__block">
+            <h4 class="ai-rec__block-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                   stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Súmale estos adicionales
+            </h4>
+            <ul class="ai-rec__extras">
+              @for (extra of extras(); track extra.id) {
+                <li class="ai-rec__extra">
+                  <span class="ai-rec__extra-name">{{ extra.name }}</span>
+                  <span class="ai-rec__extra-price">+{{ extra.priceLabel }}</span>
+                  <span class="ai-rec__extra-reason">{{ extra.reason }}</span>
+                </li>
+              }
+            </ul>
+            <p class="ai-rec__hint">Los eliges al confirmar tu pedido.</p>
+          </div>
         }
-      </ul>
+
+        <!-- DÓNDE COMERLA -->
+        @if (venue(); as place) {
+          <div class="ai-rec__block ai-rec__block--venue">
+            <h4 class="ai-rec__block-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                <circle cx="12" cy="10" r="2.6" />
+              </svg>
+              Te esperamos en
+            </h4>
+            <p class="ai-rec__venue-name">{{ place.name }}</p>
+            <p class="ai-rec__venue-address">{{ place.address }}</p>
+            <a class="ai-rec__venue-link" href="#locales">
+              Ver en el mapa
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+            </a>
+          </div>
+        }
+
+        <button type="button" class="ai-rec__again" (click)="startOver()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+            <path d="M3 4v4h4" />
+          </svg>
+          Probar otro antojo
+        </button>
+      </div>
     }
   </section>
 }

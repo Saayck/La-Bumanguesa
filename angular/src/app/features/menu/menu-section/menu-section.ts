@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MenuService } from '../../../core/services/menu.service';
+import { MenuExtrasService } from '../../../core/services/menu-extras.service';
 import { SiteConfigService } from '../../../core/services/site-config.service';
 import { WhatsappService } from '../../../core/services/whatsapp.service';
 import { MenuCard } from '../menu-card/menu-card';
@@ -11,6 +12,9 @@ import { API_BASE } from '../../../core/config/api.config';
 import type { MenuItem } from '../../../core/models/menu-item.model';
 
 export type MenuCategory = 'popular' | 'clasicas' | 'americanas' | 'extras';
+
+import { MenuCategoriesService } from '../../../core/services/menu-categories.service';
+import { AppIcon } from '../../../shared/components/icon/icon';
 
 interface AiRankDto {
   itemId: number;
@@ -32,7 +36,7 @@ interface AiRankingResponse {
   selector: 'app-menu-section',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MenuCard, OrderModal, SectionTitle, AiRecommender],
+  imports: [MenuCard, OrderModal, SectionTitle, AiRecommender, AppIcon],
   templateUrl: './menu-section.html',
   styleUrl: './menu-section.scss',
 })
@@ -42,17 +46,22 @@ export class MenuSection implements OnInit {
   private readonly whatsapp = inject(WhatsappService);
   private readonly site = inject(SiteConfigService);
 
-  protected readonly activeTab = signal<MenuCategory>('popular');
+  protected readonly categories = inject(MenuCategoriesService).list;
+  protected readonly activeTab = signal<string>('popular');
   protected readonly items = this.menu.list;
   protected readonly waLink = this.whatsapp.link;
   protected readonly selectedOrder = signal<MenuItem | null>(null);
   protected readonly aiRankings = signal<AiRankDto[]>([]);
+  /** Misma fuente que el modal de pedido y el recomendador. */
+  protected readonly extras = inject(MenuExtrasService).list;
 
   /** Datos de contacto y cobro que el modal de pedido necesita (vienen de la BD). */
   protected readonly waNumber = computed(() => this.site.config()?.whatsappNumber ?? '');
   protected readonly yapeQrUrl = computed(() => this.site.config()?.payment?.yapeQrUrl ?? '');
   protected readonly yapeNumber = computed(() => this.site.config()?.payment?.yapeNumber ?? '');
   protected readonly yapeHolder = computed(() => this.site.config()?.payment?.yapeHolder ?? '');
+  protected readonly takeawayFee = computed(() => this.site.config()?.takeawayFee ?? 1.00);
+  protected readonly menuTitle = computed(() => this.site.config()?.sectionTitles?.['menu'] ?? { leading: 'Nuestra', highlight: 'Carta', accent: 'gold' });
 
   ngOnInit(): void {
     this.fetchAiRankings();
@@ -76,7 +85,6 @@ export class MenuSection implements OnInit {
 
     if (category === 'popular') {
       if (ranks.length > 0) {
-        // Se respeta el orden del ranking bayesiano, no el orden de la carta.
         const byId = new Map(all.map((item) => [item.itemId, item]));
         const matched = ranks
           .slice(0, 6)
@@ -84,29 +92,23 @@ export class MenuSection implements OnInit {
           .filter((item): item is MenuItem => item !== undefined);
         if (matched.length > 0) return matched;
       }
-      return all.filter((item) =>
-        ['Bumanguesa', 'Royal', 'Queen Cheese', 'American Bacon (Burger Americana)', 'Oklahoma (Burger Americana)', 'Choricarne'].includes(item.title)
-      );
+      return all.slice(0, 6);
     }
 
-    if (category === 'americanas') {
-      return all.filter(
-        (item) =>
-          item.title.includes('(Burger Americana)') ||
-          item.title.toLowerCase().includes('american') ||
-          item.title.toLowerCase().includes('oklahoma') ||
-          item.title.toLowerCase().includes('fantasti')
-      );
+    if (category === 'extras') {
+      return [];
     }
 
-    if (category === 'clasicas') {
-      return all.filter((item) => !item.title.includes('(Burger Americana)'));
-    }
-
-    return all;
+    return all.filter((item) => {
+      if (item.categorySlug) {
+        return item.categorySlug === category;
+      }
+      // Si el item aún no tiene categoría asignada en BD, cae por defecto en clasicas
+      return category === 'clasicas';
+    });
   });
 
-  protected selectTab(tab: MenuCategory): void {
+  protected selectTab(tab: string): void {
     this.activeTab.set(tab);
   }
 
@@ -127,30 +129,4 @@ export class MenuSection implements OnInit {
     this.fetchAiRankings();
   }
 
-  protected readonly extras = [
-    { name: 'Carne de Hamburguesa', price: 'S/ 8.00' },
-    { name: 'Carne Deshilachada', price: 'S/ 8.00' },
-    { name: 'Pollo Deshilachado', price: 'S/ 8.00' },
-    { name: 'Filete de Pollo', price: 'S/ 10.00' },
-    { name: 'Costillas de Cerdo', price: 'S/ 12.00' },
-    { name: 'Chicharrón (2 und)', price: 'S/ 12.00' },
-    { name: 'Alitas (3 und)', price: 'S/ 12.00' },
-    { name: 'Baño en Queso Mozarella', price: 'S/ 10.00' },
-    { name: 'Salchicha Ahumada', price: 'S/ 6.00' },
-    { name: 'Aros de Cebolla', price: 'S/ 6.00' },
-    { name: 'Maíz Dulce', price: 'S/ 7.00' },
-    { name: 'Queso Paria', price: 'S/ 4.50' },
-    { name: 'Guacamole', price: 'S/ 3.00' },
-    { name: 'Chorizo', price: 'S/ 3.00' },
-    { name: 'Tocineta', price: 'S/ 3.00' },
-    { name: 'Plátano Maduro', price: 'S/ 3.00' },
-    { name: 'Salsa BBQ', price: 'S/ 3.00' },
-    { name: 'Queso Cheddar', price: 'S/ 3.00' },
-    { name: 'Huevo', price: 'S/ 2.00' },
-    { name: 'Huevo de Codorniz', price: 'S/ 2.00' },
-    { name: 'Jamón', price: 'S/ 1.00' },
-    { name: 'Porción de Papas', price: 'S/ 8.00' },
-    { name: 'Nachos', price: 'S/ 4.00' },
-    { name: 'Rodaja de Piña', price: 'S/ 3.00' },
-  ];
 }

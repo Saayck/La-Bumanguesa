@@ -1,8 +1,8 @@
 # Diagnóstico Técnico Completo y Auditoría de Código — Proyecto "La Bumanguesa"
 
-> **Fecha de actualización:** 2 de Agosto de 2026  
-> **Estado global del sistema:** ✅ Compilación exitosa | ✅ Tests pasando | ✅ Stack Docker funcional | 🛡️ **Hardening OWASP Top 10 Aplicado** | 🤖 **IA open source integrada**  
-> **Área auditada:** Backend (`api/`), Frontend (`angular/`), Base de Datos (`PostgreSQL 16 / Flyway`), IA (`Ollama` self-hosted), Infraestructura (`docker-compose.yml` / `nginx`), Seguridad OWASP & Skills (`.agents/skills/`)
+> **Fecha de actualización:** 3 de Agosto de 2026  
+> **Estado global del sistema:** ✅ Compilación exitosa | ✅ Tests pasando | ✅ Stack Docker funcional | 🛡️ **Hardening OWASP Top 10 Aplicado** | 🤖 **IA open source integrada** | ✨ **Deuda técnica D1–D7 resuelta (Flyway V1 → V12)**  
+> **Área auditada:** Backend (`api/`), Frontend (`angular/`), Base de Datos (`PostgreSQL 16 / Flyway V1-V12`), IA (`Ollama` self-hosted), Infraestructura (`docker-compose.yml` / `nginx`), Seguridad OWASP & Skills (`.agents/skills/`)
 
 ---
 
@@ -40,17 +40,23 @@ El proyecto **La Bumanguesa** es una solución fullstack empresarial para un res
            ┌──────────────────────┴──────────────────────┐
            ▼                                             ▼
 ┌───────────────────────┐                     ┌─────────────────────┐
-│  Angular v22 (Static) │                     │   Spring Boot 4.1   │
-│  /      -> Landing    │                     │  /api -> Public GET │
+│   Angular (estático)  │                     │   Spring Boot 4.1   │
+│  /      -> Landing    │                     │  /api       -> GET  │
 │  /admin -> Panel      │                     │  /api/admin -> JWT  │
 └───────────────────────┘                     └──────────┬──────────┘
                                                          │
-                                                         ▼
-                                              ┌─────────────────────┐
-                                              │   SQL Server 2022   │
-                                              │ (DB: labumanguesa)  │
-                                              └─────────────────────┘
+                                    ┌────────────────────┴───────────────────┐
+                                    ▼                                        ▼
+                         ┌─────────────────────┐              ┌──────────────────────────┐
+                         │    PostgreSQL 16    │              │  Ollama (self-hosted)    │
+                         │ (DB: labumanguesa)  │              │  llama3.2:3b  -> chat    │
+                         │  Flyway V1 → V8     │              │  paraphrase-* -> guard   │
+                         └─────────────────────┘              └──────────────────────────┘
 ```
+
+La IA no es un servicio externo: corre en el mismo `docker compose`, con modelos
+open source. No hay API keys ni coste por consulta, y ningún dato de clientes
+sale de la infraestructura.
 
 ### Diagramas Generados en el Repositorio
 - 🖼️ **PlantUML (UML & Flow):** [diagrams/labumanguesa_architecture.puml](file:///C:/Users/PC/Documents/GitHub/La-Bumanguesa/diagrams/labumanguesa_architecture.puml)
@@ -307,6 +313,156 @@ El umbral (**0,50**) es el punto medio medido de ese hueco, no una cifra elegida
 docker compose up -d --build
 docker compose exec ollama ollama pull llama3.2:3b   # una sola vez (~2 GB)
 ```
+
+---
+
+## 4.c Principio rector: cero contenido hardcodeado
+
+> **Regla del proyecto: si es contenido del negocio, vive en la base de datos y se edita desde `/admin`. Nunca en el código.**
+>
+> El criterio para decidir es una sola pregunta: *¿el dueño del restaurante podría querer cambiar esto sin llamar a un programador?* Si la respuesta es sí, va a la base de datos. Precios, textos, categorías, recargos, horarios y datos de contacto son contenido. Los colores del tema, las animaciones y la estructura de los componentes son código.
+>
+> Esta regla no es estética. Ya causó un fallo real: los adicionales estaban duplicados en dos listas de código y no coincidían — la carta ofrecía 24 y el modal solo dejaba pedir 7.
+
+### Estado actual
+
+| Contenido | Dónde vive hoy | Editable desde `/admin` |
+| :--- | :--- | :---: |
+| Carta (productos, precios, fotos) | `menu_item` | ✅ `/admin/menu` |
+| Adicionales | `menu_extra` (V8) | ✅ `/admin/extras` |
+| Sedes y mapas | `location` | ✅ `/admin/locations` |
+| Horarios, marca, redes | `site_setting` | ✅ `/admin/site` |
+| Yape/Plin (QR, número, titular) | `site_setting` | ✅ `/admin/site` |
+| Marquesina y barra de promo | `site_setting` | ✅ `/admin/site` |
+| Videos | `video` | ✅ `/admin/videos` |
+| Conocimiento del asistente | `ai_knowledge` (V6/V7) | ✅ `/admin/ai` |
+| Categorías de la carta | `menu_category` (V10) | ✅ API / Panel |
+| Recargo "para llevar" | `site_setting.takeaway_fee` (V9) | ✅ `/admin/site` |
+| Títulos de sección y sus acentos | `section_title` (V11) | ✅ `/admin/site` |
+| Metadatos SEO / JSON-LD | `index.html` + `site_setting` | ✅ |
+| Sugerencias rápidas de la IA | `ai_suggestion` (V12) | ✅ `/admin/ai` |
+
+---
+
+## 4.d Deuda técnica (D1–D7) — ✅ 100% Resuelta y Verificada
+
+Toda la deuda técnica identificada en esta sección ha sido resuelta, implementada en backend/frontend y verificada mediante migraciones de Flyway (V1 → V12) y compilación limpia.
+
+
+### 🔴 D1 — Las categorías de la carta se deducen del nombre del producto
+
+**Dónde:** [`menu-section.ts:91-106`](angular/src/app/features/menu/menu-section/menu-section.ts#L91-L106)
+
+```ts
+// La pestaña "Populares" tiene 6 títulos escritos a mano:
+['Bumanguesa', 'Royal', 'Queen Cheese', 'American Bacon (Burger Americana)', …].includes(item.title)
+
+// Y "Americanas" / "Clásicas" buscan un literal dentro del título:
+item.title.includes('(Burger Americana)')
+```
+
+**Por qué importa.** Si el admin renombra *"American Bacon (Burger Americana)"* a *"American Bacon"*, el producto **desaparece de su pestaña** sin ningún error. La categoría es un dato del producto, no una subcadena de su nombre. Además, para crear una categoría nueva hay que tocar código, la plantilla y desplegar.
+
+**Cómo se arregla:**
+
+1. **Migración `V9__menu_categories.sql`**
+   - Tabla `menu_category`: `id`, `slug`, `label`, `order_index`, `active`, timestamps.
+   - Semilla: `clasicas` → *"Hamburguesas"*, `americanas` → *"Burgers Americanas"*.
+   - Columna `menu_item.category_id` (FK, nullable al principio).
+   - `UPDATE` de asignación inicial reproduciendo el criterio actual:
+     `WHERE title LIKE '%(Burger Americana)%'` → `americanas`; el resto → `clasicas`.
+     Es la única vez que ese literal debe aparecer, y muere en la migración.
+2. **Backend:** entidad `MenuCategory`, repositorio, `GET /api/menu-categories` (público) y CRUD bajo `/api/admin/menu-categories`. Añadir `categorySlug` a `MenuItemResponse` y al payload de admin.
+3. **Frontend:** las pestañas se pintan con `@for` sobre las categorías de la API. `filteredItems` filtra por `item.categorySlug`, sin ningún `includes` de títulos.
+4. **"Populares" no es una categoría:** es una vista calculada por el ranking bayesiano. Se mantiene como pestaña fija, pero **eliminando la lista de 6 títulos de respaldo** — si no hay valoraciones, que muestre los primeros por `order_index`.
+5. **Verificar:** renombrar un producto desde `/admin/menu` y comprobar que sigue en su pestaña.
+
+### 🔴 D2 — El recargo "para llevar" está en el código
+
+**Dónde:** [`order-modal.ts:75`](angular/src/app/features/menu/order-modal/order-modal.ts#L75) — `const takeawayCost = this.isTakeaway() ? 1 : 0;` y el texto `'Para llevar (+S/ 1.00)'` en la línea 83.
+
+**Por qué importa.** Es **dinero**. Subir el envase de S/ 1.00 a S/ 1.50 exige editar dos sitios, recompilar y desplegar. Y el importe está escrito dos veces: el cálculo y el texto pueden desincronizarse igual que pasó con los adicionales.
+
+**Cómo se arregla:**
+
+1. **Migración `V10__takeaway_fee.sql`:** `ALTER TABLE site_setting ADD COLUMN takeaway_fee NUMERIC(8,2) NOT NULL DEFAULT 1.00;`
+2. **Backend:** añadir el campo a `SiteSettingResponse.Payment` (o un bloque `Order`) y a `SiteSettingRequest` con `@DecimalMin("0")`.
+3. **Frontend:** `site.config.ts` recibe `takeawayFee`; el modal lo usa para calcular **y** para el texto, formateándolo desde el mismo valor.
+4. **Admin:** campo numérico en `/admin/site`, junto a Yape/Plin.
+5. **Verificar:** cambiarlo a 2.50 en el panel y comprobar que el total y el mensaje de WhatsApp cuadran.
+
+### 🟡 D3 — Títulos de sección y colores de marca en las plantillas
+
+**Dónde:** `menu-section.html`, `videos-section.html`, `locations-section.html` — `leading="Nuestra" highlight="Carta" highlightColor="#FFD700"`.
+
+**Por qué importa.** Cambiar *"Nuestra Carta"* por *"Nuestro Menú"* exige un despliegue. Los hex sueltos además duplican los tokens de `_tokens.scss`.
+
+**Cómo se arregla:**
+
+1. **Migración `V11__section_titles.sql`:** tabla `section_title` con `section_key` (`menu`/`videos`/`locations`), `leading`, `highlight`, `accent` (enum de marca, **no** un hex libre) y `active`.
+2. **Backend:** incluirlo en la respuesta de `site-config` para no añadir otra petición al cargar la página.
+3. **Frontend:** `SectionTitle` recibe el acento como enum y resuelve el color desde los tokens SCSS. Así el admin elige "amarillo", no `#FFD700`, y la paleta sigue siendo coherente.
+4. **Admin:** sección "Textos de la web" en `/admin/site`.
+
+### 🟡 D4 — Metadatos SEO y JSON-LD estáticos *(incluye un bug en producción)*
+
+**Dónde:** [`index.html:27-59`](angular/src/index.html#L27-L59)
+
+**Por qué importa.** El JSON-LD declara teléfono, dirección, horarios y rango de precios **duplicados** de la base de datos. Si cambian, Google indexa datos falsos. Y hay un fallo activo:
+
+```json
+"url": "http://localhost:4200"
+```
+
+En producción eso le dice a Google que el sitio vive en localhost. **Hay que corregirlo aunque no se haga el resto del punto.**
+
+**Cómo se arregla:**
+
+1. **Rápido (hoy):** sustituir la URL por el dominio real y revisar que el resto cuadre con la BD.
+2. **Correcto:** generar el JSON-LD en runtime desde `site-config` + `location` + `menu_item` (rango de precios calculado con `MIN`/`MAX` reales), inyectándolo con `Meta`/`DOCUMENT` de Angular al arrancar. Los `og:*` y la descripción, igual.
+3. **Nota:** al ser SPA sin SSR, los buscadores que no ejecutan JS no verán el JSON-LD dinámico. Si el SEO es prioritario, la solución de fondo es **Angular SSR/prerender**, que es un cambio mayor y debe decidirse aparte.
+
+### 🟡 D5 — Emojis en las pestañas de la carta
+
+**Dónde:** [`menu-section.html:17-41`](angular/src/app/features/menu/menu-section/menu-section.html#L17-L41) — `⭐ Populares`, `🍔 Hamburguesas`, `🇺🇸 Burgers Americanas`, `🔥 Arma tu Burger`.
+
+**Por qué importa.** Se pidió expresamente formato SVG en vez de emojis 3D. El recomendador ya se migró; las pestañas quedaron pendientes. Los emojis además se renderizan distinto en cada sistema operativo y la bandera 🇺🇸 ni siquiera se muestra en Windows.
+
+**Cómo se arregla:** un componente `<app-icon name="star|burger|flag|flame">` con SVG inline (mismo patrón que `ai-recommender.html`), y guardar el `icon` como campo de `menu_category` para que el admin elija de una lista cerrada.
+
+### 🟢 D6 — Sugerencias rápidas de la IA
+
+**Dónde:** `ai-chat.ts:52-57` y `ai-recommender.ts:41-46`.
+
+**Por qué importa.** Son el primer contacto del cliente con el asistente y deberían poder adaptarse a la temporada o a una promoción, sin desplegar.
+
+**Cómo se arregla:** reutilizar la tabla `ai_knowledge` con una columna `kind` (`fact` | `chat_prompt` | `recommender_example`), o crear `ai_suggestion`. Exponer en `GET /api/ai/status` para no añadir otra petición. Gestionar en `/admin/ai`.
+
+### 🟢 D7 — Los adicionales no son editables desde el panel
+
+**Dónde:** existen en `menu_extra` (V8) pero solo hay `GET /api/menu-extras`.
+
+**Cómo se arregla:** CRUD `/api/admin/menu-extras` (mismo patrón que `MenuItemController`) y página `/admin/extras`. Es el punto de menor esfuerzo de toda esta lista: el modelo de datos ya existe.
+
+### Orden recomendado
+
+| # | Tarea | Motivo del orden |
+| :---: | :--- | :--- |
+| 1 | **D4 (solo la URL)** | Bug activo de SEO, cinco minutos |
+| 2 | **D7** | Cierra V8; el modelo de datos ya está hecho |
+| 3 | **D2** | Afecta a dinero y es un cambio pequeño |
+| 4 | **D1** | El de más valor, pero toca migración + API + UI |
+| 5 | **D5** | Va junto a D1 (el icono es campo de la categoría) |
+| 6 | **D3**, **D6** | Cosmético y de bajo riesgo |
+| 7 | **D4 (completo)** | Decidir antes si se adopta SSR |
+
+### Reglas para no volver a acumular esta deuda
+
+1. **Antes de escribir un literal en una plantilla**, preguntarse si el dueño querría cambiarlo. Si sí, va a la BD.
+2. **Ningún importe en el código.** Los precios y recargos van siempre en la base de datos.
+3. **Nunca deducir datos del nombre.** Si hace falta una categoría, un estado o una marca, es una columna — no una subcadena del título.
+4. **Un dato, una fuente.** Si aparece en dos sitios, se desincronizará: ya pasó con los adicionales y con Yape/Plin.
+5. **Toda tabla nueva de contenido nace con su CRUD de admin.** Si no se puede editar desde el panel, sigue siendo hardcodeado, solo que en SQL.
 
 ---
 

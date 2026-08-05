@@ -23,5 +23,7 @@ public record MenuItemResponse(
         BrandAccent accent,
         String ctaLabel,
         int orderIndex,
-        boolean active) {
+        boolean active,
+        String categorySlug,
+        String categoryLabel) {
 }

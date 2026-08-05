@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE } from '../../../core/config/api.config';
+import { MenuExtrasService } from '../../../core/services/menu-extras.service';
 import type { MenuItem } from '../../../core/models/menu-item.model';
 
 export type PaymentMethod = 'yape' | 'cash';
@@ -20,6 +21,13 @@ export class OrderModal {
   private readonly http = inject(HttpClient);
 
   /**
+   * Misma fuente que la sección "Arma tu burger". Antes eran dos listas
+   * hardcodeadas distintas: la página ofrecía 24 adicionales y aquí solo se
+   * podían pedir 7.
+   */
+  protected readonly availableExtras = inject(MenuExtrasService).list;
+
+  /**
    * Todos estos datos llegan desde `GET /api/site-config` (ver `MenuSection`).
    * No se hardcodean aquí: el número y el QR se editan desde `/admin/site`.
    */
@@ -28,6 +36,7 @@ export class OrderModal {
   @Input() yapeQrUrl = '';
   @Input() yapeNumber = '';
   @Input() yapeHolder = '';
+  @Input() takeawayFee = 1.00;
 
   @Output() close = new EventEmitter<void>();
 
@@ -39,15 +48,6 @@ export class OrderModal {
   protected userComment = signal<string>('');
   protected ratingSubmitted = signal<boolean>(false);
 
-  protected readonly availableExtras = [
-    { name: 'Tocineta', price: 3 },
-    { name: 'Queso Cheddar', price: 3 },
-    { name: 'Chorizo', price: 3 },
-    { name: 'Huevo', price: 2 },
-    { name: 'Aros de Cebolla', price: 6 },
-    { name: 'Guacamole', price: 3 },
-    { name: 'Porción de Papas Extra', price: 8 },
-  ];
 
   protected selectedExtras = signal<string[]>([]);
 
@@ -67,12 +67,13 @@ export class OrderModal {
 
   protected calculateTotal(): number {
     const base = this.parseBasePrice();
+    const extras = this.availableExtras();
     const extrasCost = this.selectedExtras().reduce((acc, name) => {
-      const found = this.availableExtras.find((e) => e.name === name);
+      const found = extras.find((e) => e.name === name);
       return acc + (found ? found.price : 0);
     }, 0);
 
-    const takeawayCost = this.isTakeaway() ? 1 : 0;
+    const takeawayCost = this.isTakeaway() ? this.takeawayFee : 0;
     return (base + extrasCost + takeawayCost) * this.quantity();
   }
 
@@ -80,7 +81,7 @@ export class OrderModal {
     const qty = this.quantity();
     const total = this.calculateTotal().toFixed(2);
     const method = this.paymentMethod() === 'yape' ? 'Yape / Plin' : 'Contra entrega (Efectivo/Tarjeta)';
-    const takeaway = this.isTakeaway() ? 'Para llevar (+S/ 1.00)' : 'Delivery';
+    const takeaway = this.isTakeaway() ? `Para llevar (+S/ ${this.takeawayFee.toFixed(2)})` : 'Delivery';
     const extrasText = this.selectedExtras().length > 0 ? `\n- Adicionales: ${this.selectedExtras().join(', ')}` : '';
 
     const lines = [

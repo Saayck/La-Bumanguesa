@@ -27,6 +27,11 @@ export const routes: Routes = [
           import('./admin/pages/menu/menu-admin').then((m) => m.MenuAdmin),
       },
       {
+        path: 'extras',
+        loadComponent: () =>
+          import('./admin/pages/extras/extras-admin').then((m) => m.ExtrasAdmin),
+      },
+      {
         path: 'videos',
         loadComponent: () =>
           import('./admin/pages/videos/videos-admin').then((m) => m.VideosAdmin),

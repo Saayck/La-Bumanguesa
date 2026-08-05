@@ -28,4 +28,15 @@ export interface SiteConfig {
     yapeNumber: string;
     yapeHolder: string;
   };
+  takeawayFee?: number;
+  sectionTitles?: Record<string, SectionTitleItem>;
 }
+
+export interface SectionTitleItem {
+  sectionKey: string;
+  leading: string;
+  highlight: string;
+  accent: string;
+}
+
+

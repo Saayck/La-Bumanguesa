@@ -11,6 +11,8 @@ final class MenuItemMapper {
     }
 
     static MenuItemResponse toResponse(MenuItem e) {
+        String categorySlug = e.getCategory() != null ? e.getCategory().getSlug() : null;
+        String categoryLabel = e.getCategory() != null ? e.getCategory().getLabel() : null;
         return new MenuItemResponse(
                 e.getSlug(),
                 e.getId(),
@@ -22,7 +24,9 @@ final class MenuItemMapper {
                 e.getAccent(),
                 e.getCtaLabel(),
                 e.getOrderIndex(),
-                e.isActive());
+                e.isActive(),
+                categorySlug,
+                categoryLabel);
     }
 
     static MenuItem toEntity(MenuItemRequest r) {

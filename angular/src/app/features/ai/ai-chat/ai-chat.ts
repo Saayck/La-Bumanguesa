@@ -49,14 +49,22 @@ export class AiChat {
 
   protected readonly brand = computed(() => this.site.config()?.brand ?? 'La Bumanguesa');
 
-  protected readonly quickPrompts = [
+  protected readonly quickPrompts = signal<string[]>([
     '¿Qué hamburguesa me recomiendas?',
     '¿Cuáles son sus horarios?',
     '¿Dónde están ubicados?',
     '¿Cómo pago con Yape?',
-  ];
+  ]);
 
   constructor() {
+    this.ai.getPromptSuggestions('chat').subscribe({
+      next: (list) => {
+        if (list && list.length > 0) {
+          this.quickPrompts.set(list.map((s) => s.promptText));
+        }
+      },
+      error: () => {},
+    });
     // Autoscroll al último mensaje cada vez que cambia la conversación.
     effect(() => {
       this.bubbles();
